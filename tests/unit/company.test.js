@@ -64,15 +64,13 @@ describe('company.js', () => {
   let company;
 
   beforeAll(async () => {
-    process.env.SOLR_AUTH = 'test:test';
     fs.mkdirSync("tmp", { recursive: true });
     backupFile(COMPANY_JSON_PATH);
     backupFile(ROOT_COMPANY_JSON_PATH);
-    company = await import('../../company.js');
+    company = await import('../../scraper/company.js');
   });
 
   afterAll(() => {
-    delete process.env.SOLR_AUTH;
     restoreFile(COMPANY_JSON_PATH);
     restoreFile(ROOT_COMPANY_JSON_PATH);
   });
@@ -141,10 +139,10 @@ describe('company.js', () => {
     it('should return company data with status active', async () => {
       mockFetch
         .mockResolvedValueOnce(anafCompanyResponse(UTILBEN_ANAF_RECORD))
-        .mockResolvedValueOnce(solrResponse(5, [
+        .mockResolvedValueOnce({ ok: true, json: async () => ({ total: 5, data: [
           { url: 'https://test.com/1', title: 'Job 1' },
           { url: 'https://test.com/2', title: 'Job 2' }
-        ]))
+        ]})})
         .mockResolvedValueOnce(peviitorResponse([{ company: 'UTILBEN SRL' }]));
 
       const result = await company.validateAndGetCompany();
@@ -162,7 +160,7 @@ describe('company.js', () => {
 
         mockFetch
           .mockResolvedValueOnce(anafCompanyResponse(inactiveRecord))
-          .mockResolvedValueOnce(solrResponse(0, []));
+          .mockResolvedValueOnce({ ok: true, json: async () => ({ total: 0, data: [] }) });
 
         const result = await company.validateAndGetCompany();
 

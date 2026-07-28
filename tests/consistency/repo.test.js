@@ -8,7 +8,7 @@ const REPO = process.env.GITHUB_REPOSITORY;
 const TOKEN = process.env.GITHUB_TOKEN;
 const SCRAPER_YML = ".github/workflows/job-seeker-ro-spider.yml";
 
-import companyConfig from "../../config/company.js";
+import companyConfig from "../../scraper/config/company.js";
 
 function repoUrl(apiPath) {
   return `https://api.github.com/repos/${REPO}${apiPath}`;
@@ -80,14 +80,12 @@ describe("Repository Configuration", () => {
     });
   });
 
-  describe("SOLR_AUTH secret", () => {
-    it("should be defined in CI environment", () => {
-      if (!REPO) {
-        console.log("GITHUB_REPOSITORY not set — running locally, skipping");
-        return;
-      }
-      expect(process.env.SOLR_AUTH).toBeTruthy();
-      console.log("✅ SOLR_AUTH is set");
+  describe("company.json config", () => {
+    it("should have required fields", () => {
+      expect(companyConfig.id).toBeTruthy();
+      expect(companyConfig.company).toBeTruthy();
+      expect(companyConfig.brand).toBeTruthy();
+      expect(companyConfig.id).toMatch(/^\d{6,9}$/);
     });
   });
 

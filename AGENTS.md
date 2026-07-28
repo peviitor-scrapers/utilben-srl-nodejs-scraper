@@ -4,7 +4,7 @@
 UTILBEN SRL scraper for peviitor.ro (Node.js, ESM, Jest)
 
 ## 🌱 This Repo Is a Derived Scraper
-This repo was derived from [sebiboga/epam-systems-international-srl-nodejs-scraper](https://github.com/sebiboga/epam-systems-international-srl-nodejs-scraper). All company-specific configuration lives in `config/company.json`.
+This repo was derived from [sebiboga/epam-systems-international-srl-nodejs-scraper](https://github.com/sebiboga/epam-systems-international-srl-nodejs-scraper). All company-specific configuration lives in `scraper/config/company.json`.
 
 ## Key Facts
 - **Company:** UTILBEN SRL
@@ -18,8 +18,8 @@ This repo was derived from [sebiboga/epam-systems-international-srl-nodejs-scrap
 ## Important Rules
 
 ### Before making changes
-1. Read `config/company.json` first
-2. Check if the change affects SOLR schema (cif format: `/^\d{6,9}$/`)
+1. Read `scraper/config/company.json` first
+2. Check if the change affects company schema (cif format: `/^\d{6,9}$/`)
 3. Run `npm test` after changes
 
 ### Common pitfalls

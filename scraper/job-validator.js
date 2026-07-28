@@ -1,15 +1,3 @@
-/**
- * Job URL validation primitives — shared by both validators in this repo.
- *
- * - validateByHead(url): fast HEAD check, only HTTP status matters.
- * - validateByContent(url, opts): GET the page and scan body for expiration
- *   keywords (catches soft-404s where status is 200 but the job is gone).
- *
- * Used by:
- *   - tests/validate-epam-jobs.js (CI nightly cleanup) — uses validateByHead
- *   - validate-jobs.js (manual deep checks)            — uses validateByContent
- */
-
 import fetch from "node-fetch";
 
 export const DEFAULT_EXPIRED_KEYWORDS = [
@@ -25,10 +13,6 @@ export const DEFAULT_EXPIRED_KEYWORDS = [
 const DEFAULT_USER_AGENT = "job_seeker_ro_spider";
 const DEFAULT_TIMEOUT_MS = 15000;
 
-/**
- * HEAD-only validator. Returns the URL active if status is 2xx/3xx, expired
- * otherwise. Fast — used by CI nightly cleanup.
- */
 export async function validateByHead(url, { userAgent = DEFAULT_USER_AGENT } = {}) {
   try {
     const res = await fetch(url, {
@@ -48,10 +32,6 @@ export async function validateByHead(url, { userAgent = DEFAULT_USER_AGENT } = {
   }
 }
 
-/**
- * Full GET + body scan. Slower, but catches soft-404s where the HTTP status is
- * 200 but the page body says "no longer available". Used for manual cleanups.
- */
 export async function validateByContent(url, {
   keywords = DEFAULT_EXPIRED_KEYWORDS,
   userAgent = DEFAULT_USER_AGENT,

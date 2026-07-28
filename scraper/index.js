@@ -2,12 +2,12 @@ import fetch from "node-fetch";
 import fs from "fs";
 import { fileURLToPath } from "url";
 import { validateAndGetCompany } from "./company.js";
-import { querySOLR, deleteJobByUrl, upsertJobs, upsertCompany } from "./solr.js";
-import { generateJobsMarkdown } from "./src/markdown-generator.js";
+import { querySOLR, upsertJobs, upsertCompany, deleteJobByUrl } from "./api.js";
+import { generateJobsMarkdown } from "./markdown-generator.js";
 import companyConfig from "./config/company.js";
 import * as cheerio from "cheerio";
 
-const COMPANY_CIF = companyConfig.cif;
+const COMPANY_CIF = companyConfig.id;
 const TIMEOUT = 10000;
 const PAGE_SIZE = 10;
 let COMPANY_NAME = null;
@@ -187,30 +187,34 @@ async function main() {
   const testOnlyOnePage = process.argv.includes("--test");
   try {
     fs.mkdirSync("tmp", { recursive: true });
-    console.log("=== Step 1: Get existing jobs count ===");
+
+    console.log("=== Step 1: Get existing jobs from API ===");
     const existingResult = await querySOLR(COMPANY_CIF);
     const existingCount = existingResult.numFound;
-    console.log(`Found ${existingCount} existing jobs in SOLR`);
+    const existingUrls = new Set(existingResult.docs.map(doc => doc.url).filter(Boolean));
+    console.log(`Found ${existingCount} existing jobs in API`);
 
     console.log("=== Step 2: Validate company via ANAF ===");
-    const { company, cif, address } = await validateAndGetCompany();
+    const { company, cif, address, status } = await validateAndGetCompany();
     COMPANY_NAME = company;
-    const localCif = cif;
+    if (status === 'inactive') {
+      console.log("⚠️ Company is INACTIVE — jobs deleted, skipping scrape.");
+      return;
+    }
 
     try {
       await upsertCompany({
         id: cif,
         company,
-        brand: companyConfig.brand,
-        status: "activ",
-        location: address ? [address] : [companyConfig.defaultLocation],
-        website: [companyConfig.website],
-        career: [companyConfig.careerUrl],
-        lastScraped: new Date().toISOString().split('T')[0],
-        scraperFile: companyConfig.scraperFile
+        brand: companyConfig.brand || undefined,
+        status: status === 'active' ? 'activ' : (status || "activ"),
+        location: address ? [address] : companyConfig.location,
+        website: companyConfig.website,
+        career: companyConfig.career,
+        lastScraped: new Date().toISOString().split('T')[0]
       });
     } catch (err) {
-      console.log(`Note: Could not upsert company to SOLR core: ${err.message}`);
+      console.log(`Note: Could not upsert company: ${err.message}`);
     }
 
     const rawJobs = [];
@@ -224,7 +228,7 @@ async function main() {
 
     if (!testOnlyOnePage) {
       console.log("=== Step 3b: Scrape jobs from ANOFM ===");
-      const anofmJobs = await searchANOFM(localCif);
+      const anofmJobs = await searchANOFM(cif);
       for (const job of anofmJobs) {
         if (!rawJobs.find(j => j.url === job.url)) {
           rawJobs.push(job);
@@ -234,16 +238,16 @@ async function main() {
 
     console.log(`📊 Total unique jobs collected: ${rawJobs.length}`);
 
-    const jobs = rawJobs.map(job => mapToJobModel(job, localCif));
+    const jobs = rawJobs.map(job => mapToJobModel(job, cif));
     const payload = {
       source: "utilben.ro",
       scrapedAt: new Date().toISOString(),
       company: COMPANY_NAME,
-      cif: localCif,
+      cif: cif,
       jobs
     };
 
-    console.log("Transforming jobs for SOLR...");
+    console.log("Transforming jobs for API...");
     const transformedPayload = transformJobsForSOLR(payload);
     const validCount = transformedPayload.jobs.filter(j => j.location).length;
     console.log(`📊 Jobs with valid Romanian locations: ${validCount}`);
@@ -252,13 +256,13 @@ async function main() {
     console.log("Saved tmp/jobs.json");
 
     const companyData = {
-      id: localCif,
+      id: cif,
       company: transformedPayload.company,
-      brand: companyConfig.brand,
-      status: "activ",
-      location: address ? [address] : [companyConfig.defaultLocation],
-      website: [companyConfig.website],
-      career: [companyConfig.careerUrl],
+      brand: companyConfig.brand || undefined,
+      status: status === 'active' ? 'activ' : (status || "activ"),
+      location: address ? [address] : companyConfig.location,
+      website: companyConfig.website,
+      career: companyConfig.career,
       lastScraped: new Date().toISOString().split('T')[0]
     };
     const markdown = generateJobsMarkdown(companyData, transformedPayload.jobs);
@@ -266,17 +270,41 @@ async function main() {
     fs.writeFileSync("docs/jobs.md", markdown, "utf-8");
     console.log("Saved docs/jobs.md");
 
-    fs.writeFileSync("docs/company.json", JSON.stringify(companyConfig, null, 2), "utf-8");
-    console.log("Saved docs/company.json");
+    fs.copyFileSync("scraper/config/company.json", "docs/company.json");
+    console.log("Copied scraper/config/company.json → docs/company.json");
 
-    console.log("\n=== Step 6: Upsert jobs to SOLR ===");
+    console.log("\n=== Step 6: Upsert jobs to API ===");
     await upsertJobs(transformedPayload.jobs);
 
+    const scrapedUrls = new Set(transformedPayload.jobs.map(job => job.url));
+    const staleUrls = [...existingUrls].filter(url => !scrapedUrls.has(url));
+
+    if (staleUrls.length > 0) {
+      console.log(`\n=== Step 6.5: Delete ${staleUrls.length} stale job(s) ===`);
+      let deletedCount = 0;
+      for (const url of staleUrls) {
+        try {
+          console.log(`  Deleting: ${url}`);
+          await deleteJobByUrl(url);
+          deletedCount++;
+        } catch (delErr) {
+          console.warn(`  ⚠️ Failed to delete: ${url} — ${delErr.message}`);
+        }
+      }
+      console.log(`✅ Deleted ${deletedCount}/${staleUrls.length} stale job(s)`);
+    } else {
+      console.log("\n✅ No stale jobs to delete");
+    }
+
+    console.log("\n=== Step 7: Summary ===");
+
+    await new Promise(r => setTimeout(r, 2000));
     const finalResult = await querySOLR(COMPANY_CIF);
     console.log(`\n📊 === SUMMARY ===`);
-    console.log(`📊 Jobs existing in SOLR before scrape: ${existingCount}`);
+    console.log(`📊 Jobs existing in API before scrape: ${existingCount}`);
     console.log(`📊 Jobs scraped: ${rawJobs.length}`);
-    console.log(`📊 Jobs in SOLR after scrape: ${finalResult.numFound}`);
+    console.log(`📊 Stale jobs attempted: ${staleUrls.length}`);
+    console.log(`📊 Jobs in API after scrape: ${finalResult.numFound}`);
     console.log(`====================`);
 
     console.log("\n=== DONE ===");

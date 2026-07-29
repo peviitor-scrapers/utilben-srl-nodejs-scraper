@@ -127,7 +127,7 @@ scraper/index.js
 | `scraper/job-validator.js` | Shared validation primitives: validateByHead, validateByContent, DEFAULT_EXPIRED_KEYWORDS |
 | `scraper/markdown-generator.js` | Generates docs/jobs.md with company info and all scraped jobs |
 | `tests/validate-utilben-jobs.js` | CI fast validator (HEAD only); thin CLI over scraper/job-validator.js + scraper/api.js |
-| `tests/unit/index.test.js` | Unit tests for transformJobsForSOLR, mapToJobModel, parseApiJobs |
+| `tests/unit/index.test.js` | Unit tests for transformJobsForSOLR, mapToJobModel |
 | `tests/unit/company.test.js` | Unit tests for getCompanyData, validateAndGetCompany, fallback caching |
 | `tests/unit/api.test.js` | Unit tests for api.js Peviitor API operations |
 | `tests/unit/company-data.test.js` | Unit tests for ANAF/CUIScan multi-source fallback |

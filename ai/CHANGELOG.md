@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Initial release — derived from [sebiboga/epam-systems-international-srl-nodejs-scraper](https://github.com/sebiboga/epam-systems-international-srl-nodejs-scraper)
 - Job scraping from eJobs.ro company page and ANOFM API
 - Company validation via ANAF (CIF 18643343)
-- Solr integration for job storage
+- Peviitor API for job storage
 - GitHub Actions workflows for daily scraping and testing
 - Comprehensive test suite (unit, integration, E2E)
 - ANAF API fallback with cached data support

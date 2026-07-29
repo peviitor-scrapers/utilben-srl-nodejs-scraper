@@ -27,7 +27,7 @@
 | `tests/package.json` | Jest config for test suite - experimental VM modules, test scripts (unit/integration/e2e/consistency) |
 | `tests/company.json` | Mock ANAF company data for UTILBEN used in unit tests |
 | `tests/validate-utilben-jobs.js` | **UTILBEN-specific fast validator (used by CI).** HEAD requests only. Called nightly by `automation-testing.yml`. Supports `--dry-run` and `--delete`. |
-| `tests/unit/index.test.js` | Unit tests for index.js — transformJobsForSOLR, mapToJobModel, parseApiJobs |
+| `tests/unit/index.test.js` | Unit tests for index.js — transformJobsForSOLR, mapToJobModel |
 | `tests/unit/company.test.js` | Unit tests for company.js — getCompanyData, validateAndGetCompany, fallback caching |
 | `tests/unit/api.test.js` | Unit tests for api.js — querySOLR, upsertJobs, deleteJobByUrl, deleteJobsByCIF |
 | `tests/unit/company-data.test.js` | Unit tests for company-data.js — ANAF + CUIScan fallback, search + CUIFirma fallback |

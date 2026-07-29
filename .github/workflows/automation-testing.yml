@@ -95,6 +95,8 @@ jobs:
           CAREER_JSON=$(jq -c '.career' scraper/config/company.json)
           LOC_JSON=$(jq -c '.location' scraper/config/company.json)
 
+          SCRAPER_FILE=$(jq -r '.scraperFile // empty' scraper/config/company.json)
+
           jq -n \
             --arg id "$CIF" \
             --arg company "$LEGAL_NAME" \
@@ -103,7 +105,8 @@ jobs:
             --argjson career "$CAREER_JSON" \
             --argjson location "$LOC_JSON" \
             --arg today "$TODAY" \
-            '{id:$id,company:$company,brand:$brand,status:"activ",location:$location,website:$website,career:$career,lastScraped:$today}' \
+            --arg scraperFile "$SCRAPER_FILE" \
+            '{id:$id,company:$company,brand:$brand,status:"activ",location:$location,website:$website,career:$career,lastScraped:$today,scraperFile:$scraperFile}' \
             > company_data.json
 
           echo "Upserting ${BRAND} (CIF: ${CIF}) via peviitor API..."

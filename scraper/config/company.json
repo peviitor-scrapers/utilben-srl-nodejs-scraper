@@ -5,5 +5,6 @@
   "status": "activ",
   "location": ["Cluj-Napoca"],
   "website": ["https://www.utilben.ro"],
-  "career": ["https://www.utilben.ro/careers", "https://utilben.mingle.ro/en/apply", "https://www.ejobs.ro/company/utilben/123016"]
+  "career": ["https://www.utilben.ro/careers", "https://utilben.mingle.ro/en/apply", "https://www.ejobs.ro/company/utilben/123016"],
+  "scraperFile": "https://raw.githubusercontent.com/sebiboga/utilben-srl-nodejs-scraper/main/.github/workflows/job-seeker-ro-spider.yml"
 }

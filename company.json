@@ -1,0 +1,117 @@
+{
+  "validatedAt": "2026-07-28T17:04:43.433Z",
+  "source": "ANAF",
+  "brand": "Utilben",
+  "anaf": {
+    "cui": 18643343,
+    "name": "UTILBEN SRL",
+    "address": "JUD. SATU MARE, MUN. CAREI, CAL. ARMATEI ROMÂNE, NR.78",
+    "registrationNumber": "J2006000438300",
+    "phone": "0720546006",
+    "fax": "",
+    "postalCode": "445100",
+    "caenCode": "4663",
+    "iban": "",
+    "registrationState": "INREGISTRAT din data 05.05.2006",
+    "registrationDate": "2006-05-08",
+    "fiscalAuthority": "Administraţia Fiscală pentru Contribuabili Mijlocii - Satu Mare",
+    "ownershipForm": "PROPR.PRIVATA-CAPITAL PRIVAT AUTOHTON",
+    "organizationForm": "PERSOANA JURIDICA",
+    "legalForm": "SOCIETATE COMERCIALĂ CU RĂSPUNDERE LIMITATĂ",
+    "vatRegistered": true,
+    "vatPeriods": [
+      {
+        "start": "2006-05-11",
+        "end": null,
+        "yearStart": "",
+        "message": ""
+      }
+    ],
+    "cashBasisVat": false,
+    "cashBasisVatStart": null,
+    "cashBasisVatEnd": null,
+    "inactive": false,
+    "inactiveSince": null,
+    "reactivatedSince": null,
+    "splitVat": false,
+    "eFacturaRegistered": true,
+    "headquartersAddress": {
+      "street": "Cal. Armatei Române",
+      "number": "78",
+      "locality": "Mun. Carei",
+      "county": "SATU MARE",
+      "country": "",
+      "postalCode": "445100"
+    },
+    "fiscalAddress": {
+      "street": "",
+      "number": "",
+      "locality": "",
+      "county": "",
+      "country": "",
+      "postalCode": ""
+    },
+    "administrators": [
+      {
+        "name": "MARIAN OANA LAVINIA",
+        "role": "administrator"
+      },
+      {
+        "name": "MARIAN RUBEN OVIDIU",
+        "role": "administrator"
+      }
+    ],
+    "authorizedCaenCodes": [
+      "3311",
+      "3312",
+      "3317",
+      "3319",
+      "3320",
+      "4312",
+      "4399",
+      "4614",
+      "4618",
+      "4619",
+      "4661",
+      "4662",
+      "4663",
+      "4664",
+      "4671",
+      "4672",
+      "4781",
+      "4782",
+      "4792",
+      "4941",
+      "5911",
+      "5912",
+      "5913",
+      "5914",
+      "5920",
+      "6210",
+      "6220",
+      "6290",
+      "6310",
+      "6391",
+      "6392",
+      "7020",
+      "7420",
+      "7711",
+      "7731",
+      "7732",
+      "7739",
+      "8210",
+      "8230",
+      "9531"
+    ],
+    "onrcStatus": 0,
+    "onrcStatusLabel": "Funcțiune"
+  },
+  "peviitor": null,
+  "summary": {
+    "company": "UTILBEN SRL",
+    "cif": "18643343",
+    "active": true,
+    "inactiveSince": null,
+    "address": "JUD. SATU MARE, MUN. CAREI, CAL. ARMATEI ROMÂNE, NR.78"
+  }
+}

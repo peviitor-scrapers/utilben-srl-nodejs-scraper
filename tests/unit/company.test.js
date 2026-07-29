@@ -42,10 +42,10 @@ function peviitorResponse(companies) {
   };
 }
 
-function solrResponse(numFound, docs) {
+function solrResponse(total, data) {
   return {
     ok: true,
-    json: async () => ({ response: { numFound, docs } })
+    json: async () => ({ total, data })
   };
 }
 

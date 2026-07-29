@@ -9,7 +9,7 @@ jest.unstable_mockModule('node-fetch', () => ({
 function makeSolrResponse(numFound, docs) {
   return {
     ok: true,
-    json: async () => ({ response: { numFound, docs } })
+    json: async () => ({ total: numFound, data: docs })
   };
 }
 

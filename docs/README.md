@@ -2,7 +2,7 @@
 
 **job_seeker_ro_spider** — scraper pentru job-urile UTILBEN SRL din România.
 
-Extrage anunțurile de pe [eJobs.ro](https://www.ejobs.ro/company/utilben/123016) și [ANOFM](https://www.anofm.ro) și le publică în [peviitor.ro](https://peviitor.ro) prin API-ul SOLR.
+Extrage anunțurile de pe [eJobs.ro](https://www.ejobs.ro/company/utilben/123016) și [ANOFM](https://www.anofm.ro) și le publică în [peviitor.ro](https://peviitor.ro) prin API-ul Peviitor.
 
 ## Cum funcționează
 
@@ -10,7 +10,7 @@ Extrage anunțurile de pe [eJobs.ro](https://www.ejobs.ro/company/utilben/123016
    - Denumirea oficială: UTILBEN SRL
    - Status activ
 2. **Scrape-uiește job-urile** — extrage lista de job-uri de pe eJobs.ro (pagina companiei) și de pe ANOFM
-3. **Salvează în SOLR** — upsert în baza de date SOLR pentru peviitor.ro
+3. **Salvează în Peviitor** — upsert în baza de date prin API-ul Peviitor
 4. **Raportează** — generează docs/jobs.md și actualizează pagina live
 
 ## Surse de date
@@ -31,7 +31,7 @@ API-ul public ANOFM se interoghează cu CIF-ul companiei pentru a găsi job-uri 
 
 ## Robots.txt
 
-Acest scraper respectă robots.txt al surselor. Vezi [ROBOTS.md](ROBOTS.md).
+Acest scraper respectă robots.txt al surselor. Vezi [ROBOTS.md](../ai/ROBOTS.md).
 
 ## Run
 
@@ -48,7 +48,7 @@ npm run scrape -- --test
 ```bash
 npm test                 # all tests
 npm run test:unit        # unit tests
-npm run test:integration # integration tests (requires SOLR_AUTH)
-npm run test:e2e         # end-to-end tests (requires SOLR_AUTH)
+npm run test:integration # integration tests
+npm run test:e2e         # end-to-end tests
 npm run test:consistency # consistency checks
 ```

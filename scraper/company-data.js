@@ -2,75 +2,131 @@ import fetch from "node-fetch";
 
 const ANAF_API_URL = "https://demoanaf.ro/api/company/";
 const ANAF_SEARCH_URL = "https://demoanaf.ro/api/search";
-const MAX_RETRIES = 3;
-const RETRY_DELAY_MS = 2000;
+const CUISCAN_API_URL = "https://cuiscan.ro/api.php";
+const CUISFIRMA_SEARCH_URL = "https://cuifirma.ro/api/search";
+const TIMEOUT_MS = 10000;
 
-async function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
+function mapCuiscanToAnafFormat(data) {
+  return {
+    cui: data.cui,
+    name: data.denumire,
+    address: data.adresa,
+    registrationNumber: data.nrRegCom,
+    phone: data.telefon || "",
+    fax: data.fax || "",
+    postalCode: data.codPostal,
+    caenCode: data.codCaen,
+    iban: data.iban || "",
+    registrationState: data.stareInregistrare,
+    registrationDate: data.dataInregistrare,
+    fiscalAuthority: data.organFiscal,
+    ownershipForm: data.formaProprietate,
+    organizationForm: data.formaOrganizare,
+    legalForm: data.formaJuridica,
+    vatRegistered: data.platitorTVA,
+    vatPeriods: (data.perioadeTVA || []).map(p => ({
+      start: p.dataStart, end: p.dataEnd || null, yearStart: "", message: p.mesaj || ""
+    })),
+    cashBasisVat: data.tvaIncasare || false,
+    cashBasisVatStart: data.dataInceputTvaInc || null,
+    cashBasisVatEnd: data.dataSfarsitTvaInc || null,
+    inactive: !data.activ,
+    inactiveSince: data.dataInactivare || null,
+    reactivatedSince: data.dataReactivare || null,
+    splitVat: data.splitTVA || false,
+    eFacturaRegistered: data.eFactura || false,
+    headquartersAddress: data.adresaSediu ? {
+      street: data.adresaSediu.strada || "",
+      number: data.adresaSediu.numar || "",
+      locality: data.adresaSediu.localitate || "",
+      county: data.adresaSediu.judet || "",
+      country: "",
+      postalCode: data.adresaSediu.codPostal || ""
+    } : { street: "", number: "", locality: "", county: "", country: "", postalCode: "" },
+    fiscalAddress: { street: "", number: "", locality: "", county: "", country: "", postalCode: "" },
+    administrators: (data.administratori || []).map(a => ({
+      name: a.nume || a.name || "", role: a.rol || a.role || "administrator"
+    })),
+    authorizedCaenCodes: data.caenAutorizate || [],
+    onrcStatus: 0,
+    onrcStatusLabel: data.activ ? "Funcțiune" : "Inactiv"
+  };
+}
+
+async function fetchFromCuiscan(cif) {
+  const res = await fetch(`${CUISCAN_API_URL}?action=company&cui=${cif}`, {
+    headers: { "User-Agent": "job_seeker_ro_spider" },
+    signal: AbortSignal.timeout(TIMEOUT_MS)
+  });
+  if (!res.ok) throw new Error(`CUIScan API error: ${res.status}`);
+  const json = await res.json();
+  if (!json || !json.denumire) throw new Error("CUIScan returned no data");
+  return mapCuiscanToAnafFormat(json);
+}
+
+async function fetchFromAnaf(cif) {
+  const res = await fetch(`${ANAF_API_URL}${cif}`, {
+    headers: { "User-Agent": "job_seeker_ro_spider" },
+    signal: AbortSignal.timeout(TIMEOUT_MS)
+  });
+  if (!res.ok) throw new Error(`ANAF API error: ${res.status}`);
+  const json = await res.json();
+  if (json.success === false) throw new Error(json.error?.message || "ANAF returned error");
+  return json.data || null;
+}
+
+async function searchFromAnaf(brandName) {
+  const res = await fetch(`${ANAF_SEARCH_URL}?q=${encodeURIComponent(brandName)}`, {
+    headers: { "User-Agent": "job_seeker_ro_spider" },
+    signal: AbortSignal.timeout(TIMEOUT_MS)
+  });
+  if (!res.ok) throw new Error(`ANAF search error: ${res.status}`);
+  const json = await res.json();
+  return json.data || [];
+}
+
+async function searchFromCuifirma(brandName) {
+  const res = await fetch(`${CUISFIRMA_SEARCH_URL}?q=${encodeURIComponent(brandName)}`, {
+    headers: { "User-Agent": "job_seeker_ro_spider" },
+    signal: AbortSignal.timeout(TIMEOUT_MS)
+  });
+  if (!res.ok) throw new Error(`CUIFirma search error: ${res.status}`);
+  const json = await res.json();
+  return (json.results || []).map(r => ({
+    cui: String(r.cui),
+    name: r.name,
+    statusLabel: r.is_active ? "Funcțiune" : (r.status_label || "Inactiv")
+  }));
 }
 
 export async function getCompanyFromANAF(cif) {
-  let lastError = null;
-
-  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-    try {
-      const url = `${ANAF_API_URL}${cif}`;
-      const res = await fetch(url, {
-        headers: { "User-Agent": "job_seeker_ro_spider" }
-      });
-
-      if (!res.ok) {
-        lastError = new Error(`ANAF API error: ${res.status}`);
-        console.log(`ANAF attempt ${attempt}/${MAX_RETRIES} failed: ${res.status}, retrying...`);
-        if (attempt < MAX_RETRIES) await sleep(RETRY_DELAY_MS);
-        continue;
-      }
-
-      const json = await res.json();
-
-      if (json.success === false) {
-        lastError = new Error(json.error?.message || "ANAF returned error");
-        console.log(`ANAF attempt ${attempt}/${MAX_RETRIES} failed: ${json.error?.message}, retrying...`);
-        if (attempt < MAX_RETRIES) await sleep(RETRY_DELAY_MS);
-        continue;
-      }
-
-      return json.data || null;
-    } catch (err) {
-      lastError = err;
-      console.log(`ANAF attempt ${attempt}/${MAX_RETRIES} error: ${err.message}, retrying...`);
-      if (attempt < MAX_RETRIES) await sleep(RETRY_DELAY_MS);
-    }
+  try {
+    console.log(`Fetching company data for CIF: ${cif} (demoanaf.ro)...`);
+    return await fetchFromAnaf(cif);
+  } catch (err) {
+    console.log(`DemoANAF failed: ${err.message} — trying cuiscan.ro...`);
+    return await fetchFromCuiscan(cif);
   }
-
-  throw lastError || new Error("ANAF API failed after retries");
 }
 
 export async function getCompanyFromANAFWithFallback(cif, cachedData = null) {
   try {
     return await getCompanyFromANAF(cif);
   } catch (err) {
-    console.log(`\n⚠️ ANAF API unavailable: ${err.message}`);
-
+    console.log(`\n⚠️ All company data sources unavailable: ${err.message}`);
     if (cachedData) {
       console.log("✅ Using cached company data as fallback");
       return cachedData;
     }
-
     throw err;
   }
 }
 
 export async function searchCompany(brandName) {
-  const url = `${ANAF_SEARCH_URL}?q=${encodeURIComponent(brandName)}`;
-  const res = await fetch(url, {
-    headers: { "User-Agent": "job_seeker_ro_spider" }
-  });
-
-  if (!res.ok) {
-    throw new Error(`ANAF search error: ${res.status}`);
+  try {
+    return await searchFromAnaf(brandName);
+  } catch (err) {
+    console.log(`DemoANAF search failed: ${err.message} — trying cuifirma.ro...`);
+    return await searchFromCuifirma(brandName);
   }
-
-  const json = await res.json();
-  return json.data || [];
 }

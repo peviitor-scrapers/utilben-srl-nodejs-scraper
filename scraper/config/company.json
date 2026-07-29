@@ -5,7 +5,5 @@
   "status": "activ",
   "location": ["Cluj-Napoca"],
   "website": ["https://www.utilben.ro"],
-  "career": ["https://www.utilben.ro/careers", "https://utilben.mingle.ro/en/apply", "https://www.ejobs.ro/company/utilben/123016"],
-  "apiBase": "https://www.utilben.ro",
-  "apiEndpoint": ""
+  "career": ["https://www.utilben.ro/careers", "https://utilben.mingle.ro/en/apply", "https://www.ejobs.ro/company/utilben/123016"]
 }

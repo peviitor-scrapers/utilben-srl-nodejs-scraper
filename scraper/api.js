@@ -172,10 +172,10 @@ async function checkUrl(url) {
 }
 
 export async function runVerification(cif) {
-  console.log("=== Verify SOLR Jobs ===\n");
+  console.log("=== Verify Jobs ===\n");
 
   const result = await querySOLR(cif);
-  console.log(`Total jobs in SOLR for CIF ${cif}: ${result.numFound}`);
+  console.log(`Total jobs in API for CIF ${cif}: ${result.numFound}`);
 
   console.log("\nFirst 5 jobs:");
   result.docs.slice(0, 5).forEach((job, i) => {

@@ -9,7 +9,7 @@ import * as cheerio from "cheerio";
 
 const COMPANY_CIF = companyConfig.id;
 const TIMEOUT = 10000;
-const PAGE_SIZE = 10;
+
 let COMPANY_NAME = null;
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -100,29 +100,6 @@ async function scrapeEJobs() {
     console.log(`  eJobs error: ${err.message}`);
   }
   return jobs;
-}
-
-function parseApiJobs(apiData) {
-  const jobs = apiData.data?.jobs || [];
-  const total = apiData.data?.total || 0;
-  return {
-    jobs: jobs.map(job => {
-      const location = [];
-      if (job.city && job.city.length > 0) {
-        for (const c of job.city) {
-          if (c.name) location.push(c.name);
-        }
-      } else if (job.country?.[0]?.name) {
-        location.push(job.country[0].name);
-      }
-      const uid = job.uid || "";
-      const seoUrl = job.seo?.url || `/en/vacancy/${uid}_en`;
-      const url = seoUrl.startsWith('http') ? seoUrl : `https://careers.epam.com${seoUrl}`;
-      const tags = (job.skills || []).map(s => s.toLowerCase());
-      return { url, title: job.name, uid: job.uid, workmode: "hybrid", location, tags };
-    }),
-    total
-  };
 }
 
 function mapToJobModel(rawJob, cif, companyName = COMPANY_NAME) {
@@ -316,7 +293,7 @@ async function main() {
   }
 }
 
-export { parseApiJobs, mapToJobModel, transformJobsForSOLR };
+export { mapToJobModel, transformJobsForSOLR };
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main();

@@ -156,8 +156,8 @@ export async function validateAndGetCompany() {
   const { company, cif, active, anafData } = await getCompanyData();
 
   console.log("\n=== Step 2: Check existing jobs in API ===\n");
-  const solrResult = await querySOLR(cif);
-  console.log(`Jobs found in API for CIF ${cif}: ${solrResult.numFound}`);
+  const apiResult = await querySOLR(cif);
+  console.log(`Jobs found in API for CIF ${cif}: ${apiResult.numFound}`);
 
   console.log("\n=== Step 3: Validate via Peviitor ===\n");
   let peviitorData = null;
@@ -174,10 +174,10 @@ export async function validateAndGetCompany() {
 
   if (!active) {
     console.log("\n⚠️ Company is INACTIVE in ANAF - deleting jobs from API and stopping");
-    if (solrResult.numFound > 0) {
+    if (apiResult.numFound > 0) {
       await deleteJobsByCIF(cif);
     }
-    return { status: "inactive", company, cif, existingJobsCount: solrResult.numFound };
+    return { status: "inactive", company, cif, existingJobsCount: apiResult.numFound };
   }
 
   const address = anafData?.address || "";
@@ -185,5 +185,5 @@ export async function validateAndGetCompany() {
   console.log(`\n✅ Company validated: ${company}, CIF: ${cif}`);
   console.log("Ready to scrape jobs...\n");
 
-  return { status: "active", company, cif, existingJobsCount: solrResult.numFound, address, anafData };
+  return { status: "active", company, cif, existingJobsCount: apiResult.numFound, address, anafData };
 }

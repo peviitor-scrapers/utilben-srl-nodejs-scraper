@@ -7,36 +7,24 @@
 | CIF | 18643343 |
 | Brand | Utilben |
 | Status | activ |
-| Location | Calea ARMATEI ROMÂNE, 78, Municipiul Carei, Satu Mare |
+| Location | JUD. SATU MARE, MUN. CAREI, CAL. ARMATEI ROMÂNE, NR.78 |
 | Website | [https://www.utilben.ro](https://www.utilben.ro) |
 | Careers | [https://www.utilben.ro/careers](https://www.utilben.ro/careers) |
-| Last Scraped | 2026-06-29 |
+| Last Scraped | 2026-07-29 |
 
-## Current Job Listings (6)
+## Current Job Listings (4)
 
-_Generated: 2026-06-29T11:03:18.248Z_
+_Generated: 2026-07-29T04:53:24.150Z_
 
 ### Consultant Vanzari- Utilaje Municipale - Sud-ul Romaniei
 
-- **URL:** [https://www.ejobs.ro/user/locuri-de-munca/consultant-vanzari-utilaje-municipale-sud-ul-romaniei/1967860](https://www.ejobs.ro/user/locuri-de-munca/consultant-vanzari-utilaje-municipale-sud-ul-romaniei/1967860)
+- **URL:** [https://www.ejobs.ro/user/locuri-de-munca/consultant-vanzari-utilaje-municipale-sud-ul-romaniei/1973101](https://www.ejobs.ro/user/locuri-de-munca/consultant-vanzari-utilaje-municipale-sud-ul-romaniei/1973101)
 - **Location:** România
-- **Status:** scraped
-
-### Contabil senior / Coordonator contabilitate
-
-- **URL:** [https://www.ejobs.ro/user/locuri-de-munca/contabil-senior-coordonator-contabilitate/1964838](https://www.ejobs.ro/user/locuri-de-munca/contabil-senior-coordonator-contabilitate/1964838)
-- **Location:** Cluj-Napoca
-- **Status:** scraped
-
-### Generalist HR
-
-- **URL:** [https://www.ejobs.ro/user/locuri-de-munca/generalist-hr/1964778](https://www.ejobs.ro/user/locuri-de-munca/generalist-hr/1964778)
-- **Location:** Cluj-Napoca
 - **Status:** scraped
 
 ### Office sales: piese si servicii de reparatii Baciu si Iasi
 
-- **URL:** [https://www.ejobs.ro/user/locuri-de-munca/office-sales-piese-si-servicii-de-reparatii-baciu-si-iasi/1964214](https://www.ejobs.ro/user/locuri-de-munca/office-sales-piese-si-servicii-de-reparatii-baciu-si-iasi/1964214)
+- **URL:** [https://www.ejobs.ro/user/locuri-de-munca/office-sales-piese-si-servicii-de-reparatii-baciu-si-iasi/1973099](https://www.ejobs.ro/user/locuri-de-munca/office-sales-piese-si-servicii-de-reparatii-baciu-si-iasi/1973099)
 - **Location:** România
 - **Status:** scraped
 

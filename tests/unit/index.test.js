@@ -1,10 +1,35 @@
 import { jest } from '@jest/globals';
 
+const mockFetch = jest.fn();
+
+jest.unstable_mockModule('node-fetch', () => ({
+  default: mockFetch
+}));
+
+function makeJsonResponse(body) {
+  return {
+    ok: true,
+    json: async () => body
+  };
+}
+
+function makeErrorResponse(status, text) {
+  return {
+    ok: false,
+    status,
+    text: async () => text
+  };
+}
+
 describe('index.js Component Tests', () => {
   let index;
 
   beforeAll(async () => {
     index = await import('../../scraper/index.js');
+  });
+
+  beforeEach(() => {
+    mockFetch.mockReset();
   });
 
   describe('transformJobsForSOLR', () => {
@@ -64,6 +89,80 @@ describe('index.js Component Tests', () => {
     it('should handle empty jobs array', () => {
       const result = index.transformJobsForSOLR({ jobs: [] });
       expect(result.jobs).toEqual([]);
+    });
+  });
+
+  describe('scrapeMingleCareers', () => {
+    it('should return jobs from Mingle API', async () => {
+      mockFetch.mockResolvedValue(makeJsonResponse({
+        data: {
+          results: [
+            {
+              id: 29690,
+              uid: "sPjIAA",
+              title: "Consultant Vanzari- Utilaje Municipale - Sud-ul Romaniei",
+              locations: [
+                { id: 936, uid: "936", label: "Pitești" },
+                { id: 1088, uid: "1088", label: "Ploiești" }
+              ]
+            },
+            {
+              id: 28328,
+              uid: "qNphiw",
+              title: "Consultant Vanzari- Utilaje Municipale - VEST",
+              locations: [
+                { id: 999, uid: "999", label: "Timișoara" }
+              ]
+            }
+          ]
+        }
+      }));
+
+      const jobs = await index.scrapeMingleCareers();
+
+      expect(jobs).toHaveLength(2);
+      expect(jobs[0].url).toBe("https://utilben.mingle.ro/en/apply/sPjIAA");
+      expect(jobs[0].title).toBe("Consultant Vanzari- Utilaje Municipale - Sud-ul Romaniei");
+      expect(jobs[0].location).toEqual(["Pitești", "Ploiești"]);
+      expect(jobs[0].source).toBe("Mingle");
+      expect(jobs[1].url).toBe("https://utilben.mingle.ro/en/apply/qNphiw");
+      expect(jobs[1].location).toEqual(["Timișoara"]);
+    });
+
+    it('should handle empty results', async () => {
+      mockFetch.mockResolvedValue(makeJsonResponse({ data: { results: [] } }));
+
+      const jobs = await index.scrapeMingleCareers();
+
+      expect(jobs).toEqual([]);
+    });
+
+    it('should handle API error', async () => {
+      mockFetch.mockResolvedValue(makeErrorResponse(500, 'Server Error'));
+
+      const jobs = await index.scrapeMingleCareers();
+
+      expect(jobs).toEqual([]);
+    });
+
+    it('should handle missing locations', async () => {
+      mockFetch.mockResolvedValue(makeJsonResponse({
+        data: {
+          results: [
+            {
+              id: 1,
+              uid: "abc123",
+              title: "No Location Job",
+              locations: []
+            }
+          ]
+        }
+      }));
+
+      const jobs = await index.scrapeMingleCareers();
+
+      expect(jobs).toHaveLength(1);
+      expect(jobs[0].location).toBeUndefined();
     });
   });
 

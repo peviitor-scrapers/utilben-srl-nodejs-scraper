@@ -55,6 +55,39 @@ async function searchANOFM(cif) {
   return jobs;
 }
 
+async function scrapeMingleCareers() {
+  const jobs = [];
+  try {
+    const url = "https://mingle.ro/api/boards/careers-page/jobs?company=utilben&page=0&pageSize=30&sort=";
+    console.log(`Fetching Mingle careers: ${url}`);
+    const res = await fetch(url, {
+      timeout: TIMEOUT,
+      headers: {
+        "User-Agent": "job_seeker_ro_spider",
+        "Accept": "application/json"
+      }
+    });
+    if (!res.ok) {
+      console.log(`  Mingle API returned ${res.status}`);
+      return jobs;
+    }
+    const data = await res.json();
+    for (const job of data.data?.results || []) {
+      const locations = (job.locations || []).map(l => l.label).filter(Boolean);
+      jobs.push({
+        url: `https://utilben.mingle.ro/en/apply/${job.uid}`,
+        title: job.title,
+        location: locations.length > 0 ? locations : undefined,
+        source: "Mingle"
+      });
+    }
+    console.log(`  Found ${jobs.length} jobs on Mingle`);
+  } catch (err) {
+    console.log(`  Mingle error: ${err.message}`);
+  }
+  return jobs;
+}
+
 async function scrapeEJobs() {
   const jobs = [];
   try {
@@ -213,6 +246,14 @@ async function main() {
       }
     }
 
+    console.log("=== Step 3c: Scrape jobs from Mingle ===");
+    const mingleJobs = await scrapeMingleCareers();
+    for (const job of mingleJobs) {
+      if (!rawJobs.find(j => j.url === job.url)) {
+        rawJobs.push(job);
+      }
+    }
+
     console.log(`📊 Total unique jobs collected: ${rawJobs.length}`);
 
     const jobs = rawJobs.map(job => mapToJobModel(job, cif));
@@ -293,7 +334,7 @@ async function main() {
   }
 }
 
-export { mapToJobModel, transformJobsForSOLR };
+export { mapToJobModel, transformJobsForSOLR, scrapeMingleCareers };
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main();

@@ -5,7 +5,7 @@
   "status": "activ",
   "location": ["Cluj-Napoca"],
   "website": ["https://www.utilben.ro"],
-  "career": ["https://www.utilben.ro/careers"],
+  "career": ["https://www.utilben.ro/careers", "https://utilben.mingle.ro/en/apply"],
   "apiBase": "https://www.utilben.ro",
   "apiEndpoint": ""
 }

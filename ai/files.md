@@ -51,7 +51,7 @@
 | `ai/AGENTS.md` | Rules for AI agents working on this project |
 | `ai/BRANCH.md` | Branch strategy and naming conventions |
 | `ai/CHANGELOG.md` | Version history and notable changes |
-| `ai/CONTRIBUTING.md` | Contribution guidelines |
+| `CONTRIBUTING.md` | Contribution guidelines |
 | `ai/ISSUES.md` | Issue tracking conventions |
 | `ai/PUBLIC.md` | Notes on public visibility and data policies |
 | `ai/ROBOTS.md` | robots.txt analysis and scraping policy |

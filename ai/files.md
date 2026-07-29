@@ -29,7 +29,7 @@
 | `tests/validate-utilben-jobs.js` | **UTILBEN-specific fast validator (used by CI).** HEAD requests only. Called nightly by `automation-testing.yml`. Supports `--dry-run` and `--delete`. |
 | `tests/unit/index.test.js` | Unit tests for index.js — transformJobsForSOLR, mapToJobModel, parseApiJobs |
 | `tests/unit/company.test.js` | Unit tests for company.js — getCompanyData, validateAndGetCompany, fallback caching |
-| `tests/unit/solr.test.js` | Unit tests for api.js — querySOLR, upsertJobs, deleteJobByUrl, deleteJobsByCIF |
+| `tests/unit/api.test.js` | Unit tests for api.js — querySOLR, upsertJobs, deleteJobByUrl, deleteJobsByCIF |
 | `tests/unit/company-data.test.js` | Unit tests for company-data.js — ANAF + CUIScan fallback, search + CUIFirma fallback |
 | `tests/unit/job-validator.test.js` | Unit tests for job-validator.js — validateByHead, validateByContent |
 | `tests/unit/markdown-generator.test.js` | Unit tests for markdown-generator.js — company section, jobs section, output format |

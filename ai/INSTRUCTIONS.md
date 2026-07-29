@@ -129,7 +129,7 @@ scraper/index.js
 | `tests/validate-utilben-jobs.js` | CI fast validator (HEAD only); thin CLI over scraper/job-validator.js + scraper/api.js |
 | `tests/unit/index.test.js` | Unit tests for transformJobsForSOLR, mapToJobModel, parseApiJobs |
 | `tests/unit/company.test.js` | Unit tests for getCompanyData, validateAndGetCompany, fallback caching |
-| `tests/unit/solr.test.js` | Unit tests for api.js Peviitor API operations |
+| `tests/unit/api.test.js` | Unit tests for api.js Peviitor API operations |
 | `tests/unit/company-data.test.js` | Unit tests for ANAF/CUIScan multi-source fallback |
 | `tests/unit/job-validator.test.js` | Unit tests for job-validator.js |
 | `tests/unit/markdown-generator.test.js` | Unit tests for markdown-generator.js |

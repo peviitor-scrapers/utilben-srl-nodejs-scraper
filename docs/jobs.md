@@ -10,11 +10,11 @@
 | Location | JUD. SATU MARE, MUN. CAREI, CAL. ARMATEI ROMÂNE, NR.78 |
 | Website | [https://www.utilben.ro](https://www.utilben.ro) |
 | Careers | [https://www.utilben.ro/careers](https://www.utilben.ro/careers), [https://utilben.mingle.ro/en/apply](https://utilben.mingle.ro/en/apply), [https://www.ejobs.ro/company/utilben/123016](https://www.ejobs.ro/company/utilben/123016) |
-| Last Scraped | 2026-07-29 |
+| Last Scraped | 2026-07-31 |
 
 ## Current Job Listings (13)
 
-_Generated: 2026-07-29T08:42:07.445Z_
+_Generated: 2026-07-31T08:50:59.726Z_
 
 ### Consultant Vanzari- Utilaje Municipale - Sud-ul Romaniei
 

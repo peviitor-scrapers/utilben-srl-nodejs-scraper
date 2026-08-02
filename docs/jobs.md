@@ -10,11 +10,11 @@
 | Location | JUD. SATU MARE, MUN. CAREI, CAL. ARMATEI ROMÂNE, NR.78 |
 | Website | [https://www.utilben.ro](https://www.utilben.ro) |
 | Careers | [https://www.utilben.ro/careers](https://www.utilben.ro/careers), [https://utilben.mingle.ro/en/apply](https://utilben.mingle.ro/en/apply), [https://www.ejobs.ro/company/utilben/123016](https://www.ejobs.ro/company/utilben/123016) |
-| Last Scraped | 2026-07-31 |
+| Last Scraped | 2026-08-02 |
 
-## Current Job Listings (13)
+## Current Job Listings (11)
 
-_Generated: 2026-07-31T08:50:59.726Z_
+_Generated: 2026-08-02T08:25:22.870Z_
 
 ### Consultant Vanzari- Utilaje Municipale - Sud-ul Romaniei
 
@@ -26,18 +26,6 @@ _Generated: 2026-07-31T08:50:59.726Z_
 
 - **URL:** [https://www.ejobs.ro/user/locuri-de-munca/office-sales-piese-si-servicii-de-reparatii-baciu-si-iasi/1973099](https://www.ejobs.ro/user/locuri-de-munca/office-sales-piese-si-servicii-de-reparatii-baciu-si-iasi/1973099)
 - **Location:** România
-- **Status:** scraped
-
-### Reprezentant Vanzari de Utilaje Municipale -zona  Moldova
-
-- **URL:** [https://www.ejobs.ro/user/locuri-de-munca/reprezentant-vanzari-de-utilaje-municipale-zona-moldova/1961232](https://www.ejobs.ro/user/locuri-de-munca/reprezentant-vanzari-de-utilaje-municipale-zona-moldova/1961232)
-- **Location:** România
-- **Status:** scraped
-
-### REPREZENTANT COMERCIAL
-
-- **URL:** [https://mediere.anofm.ro/app/module/mediere/job/3289032](https://mediere.anofm.ro/app/module/mediere/job/3289032)
-- **Location:** CLUJ-NAPOCA
 - **Status:** scraped
 
 ### Consultant Vanzari- Utilaje Municipale - Sud-ul Romaniei

@@ -1,19 +1,23 @@
-[![Oportunitati SI Cariere](https://github.com/sebiboga/utilben-srl-nodejs-scraper/actions/workflows/job-seeker-ro-spider.yml/badge.svg)](https://github.com/sebiboga/utilben-srl-nodejs-scraper/actions/workflows/job-seeker-ro-spider.yml)
-[![Automation Tests](https://github.com/sebiboga/utilben-srl-nodejs-scraper/actions/workflows/automation-testing.yml/badge.svg)](https://github.com/sebiboga/utilben-srl-nodejs-scraper/actions/workflows/automation-testing.yml)
-[![Version](https://img.shields.io/github/package-json/v/sebiboga/utilben-srl-nodejs-scraper?label=version&color=blue)](ai/CHANGELOG.md)
-[![Test Results](https://img.shields.io/badge/test--results-HTML-9b59b6)](https://sebiboga.github.io/utilben-srl-nodejs-scraper/test-results/)
+# job_seeker_ro_spider — UTILBEN SRL Scraper
+
+[![Oportunitati SI Cariere](https://github.com/peviitor-scrapers/utilben-srl-nodejs-scraper/actions/workflows/job-seeker-ro-spider.yml/badge.svg)](https://github.com/peviitor-scrapers/utilben-srl-nodejs-scraper/actions/workflows/job-seeker-ro-spider.yml)
+[![Automation Tests](https://github.com/peviitor-scrapers/utilben-srl-nodejs-scraper/actions/workflows/automation-testing.yml/badge.svg)](https://github.com/peviitor-scrapers/utilben-srl-nodejs-scraper/actions/workflows/automation-testing.yml)
+
+[![Version](https://img.shields.io/github/package-json/v/peviitor-scrapers/utilben-srl-nodejs-scraper?label=version&color=blue)](CHANGELOG.md)
+[![Test Results](https://img.shields.io/badge/test--results-HTML-9b59b6)](https://peviitor-scrapers.github.io/utilben-srl-nodejs-scraper/test-results/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![JavaScript](https://img.shields.io/badge/javascript-ESM-F7DF1E?logo=javascript&logoColor=black)](https://ecma-international.org/)
 [![Node.js](https://img.shields.io/badge/node-24-339933?logo=nodedotjs&logoColor=white)](https://nodejs.org/)
 [![Website](https://img.shields.io/website?url=https%3A%2F%2Fpeviitor.ro&label=peviitor.ro)](https://peviitor.ro)
 [![API](https://img.shields.io/website?url=https%3A%2F%2Fapi.peviitor.ro%2F&label=api.peviitor.ro)](https://api.peviitor.ro/)
-[![GitHub Pages](https://img.shields.io/github/deployments/sebiboga/utilben-srl-nodejs-scraper/github-pages?label=GitHub%20Pages)](https://sebiboga.github.io/utilben-srl-nodejs-scraper/)
+[![SOLR](https://img.shields.io/website?url=https%3A%2F%2Fsolr.peviitor.ro%2Fsolr%2F&label=solr.peviitor.ro)](https://solr.peviitor.ro/solr/)
+[![GitHub Pages](https://img.shields.io/github/deployments/peviitor-scrapers/utilben-srl-nodejs-scraper/github-pages?label=GitHub%20Pages)](https://peviitor-scrapers.github.io/utilben-srl-nodejs-scraper/)
 
-# job_seeker_ro_spider — UTILBEN SRL Scraper
+**job_seeker_ro_spider** — un scraper pentru job-urile UTILBEN SRL din România. Extrage anunțurile de pe [eJobs.ro](https://www.ejobs.ro/company/utilben/123016), [Mingle](https://utilben.mingle.ro/en/apply) și [ANOFM](https://www.anofm.ro) și le publică în [peviitor.ro](https://peviitor.ro) prin API-ul Peviitor.
 
-**job_seeker_ro_spider** — un scraper pentru job-urile UTILBEN SRL din România. Extrage anunțurile de pe [eJobs.ro](https://www.ejobs.ro/company/utilben/123016) și [ANOFM](https://www.anofm.ro) și le publică în [peviitor.ro](https://peviitor.ro) prin API-ul Peviitor.
-
-> **🌱 Derived Scraper.** Acest repo este un scraper derivat din [sebiboga/epam-systems-international-srl-nodejs-scraper](https://github.com/sebiboga/epam-systems-international-srl-nodejs-scraper). Toată configurația specifică companiei se află în `scraper/config/company.json`.
+> **🌱 Derived scraper.** Acest repo a fost derivat din [EPAM template](https://github.com/sebiboga/epam-systems-international-srl-nodejs-scraper). Identitatea companiei trăiește în `scraper/config/company.json`.
+> 
+> Derivat din: `sebiboga/epam-systems-international-srl-nodejs-scraper`
 
 ## Overview
 
@@ -21,17 +25,104 @@ Proiectul automatizează colectarea zilnică a job-urilor UTILBEN din România, 
 
 ## Features
 
-- Extrage job-uri de pe eJobs.ro și ANOFM
-- Validează compania via ANAF (CIF 18643343, status activ) cu fallback CUIScan
+- Extrage job-uri de pe eJobs.ro (HTML), Mingle Careers API și ANOFM API (filtrat pe CIF)
+- Validează compania via ANAF (CIF, status activ/inactiv, adresă completă)
 - **Cache ANAF la 7 zile** — committed în repo, nu lovește demoANAF la fiecare scrape
 - **Fallback la cache stale** dacă ANAF e indisponibil
-- Multi-source fallback: ANAF → CUIScan → cache
-- Șterge job-urile stale (pe site dar nu și în API)
-- Stochează în Peviitor API (fără acces direct SOLR)
+- Stochează prin Peviitor API (job core + company core)
 - Generează `docs/jobs.md` automat — accesibil pe GitHub Pages
 - **Identitate companie într-un singur fișier** (`scraper/config/company.json`)
 - GitHub Actions: scrape zilnic + testare automată (unit, integration, e2e, consistency)
+- Fără `SOLR_AUTH` — toate operațiile merg prin Peviitor API (public)
 - Se identifică prin User-Agent: `job_seeker_ro_spider`
+
+## Project Structure
+
+```
+├── scraper/
+│   ├── index.js                    # Main scraper entry point
+│   ├── company.js                  # Company validation via ANAF + Peviitor
+│   ├── anaf.js                     # ANAF API core module
+│   ├── api.js                      # Peviitor API (query, upsert, delete)
+│   ├── markdown-generator.js       # Generates docs/jobs.md
+│   ├── job-validator.js            # Shared job validation
+│   ├── validate-jobs.js            # Deep validator CLI
+│   ├── demoanaf.js                 # ANAF CLI
+│   └── config/
+│       ├── company.json            # Single source of truth: id, brand, URLs
+│       ├── company.js              # ESM loader for company.json
+│       ├── scraper.json            # apiBase config
+│       └── scraper.js              # ESM loader for scraper.json
+├── company.json                    # ANAF data cache (committed, 7-day TTL)
+├── ai/                             # Project documentation
+├── tests/
+│   ├── unit/                       # Unit tests (scrapeMingleCareers, mapToJobModel, transformJobsForSOLR)
+│   ├── integration/                # Integration tests (ANAF + Peviitor live)
+│   ├── e2e/                        # E2E tests (real eJobs page)
+│   └── consistency/                # Repo configuration tests
+├── docs/
+│   ├── index.html              # Live job board (GitHub Pages)
+│   └── jobs.md                 # Scraped jobs in markdown (generated by CI)
+└── .github/
+    └── workflows/
+        ├── job-seeker-ro-spider.yml     # Daily scraping at 6 AM UTC
+        ├── automation-testing.yml       # Tests on push/PR
+        └── job-recovery-from-disaster.yml  # Company core recovery
+```
+
+## Setup
+
+### Prerequisites
+
+- Node.js 24+
+- npm
+
+### Installation
+
+```bash
+npm install
+```
+
+### Configuration
+
+Nu e necesară nicio variabilă de mediu — toate operațiile merg prin Peviitor API (public, fără autentificare).
+
+## Usage
+
+### Run the Scraper
+
+```bash
+npm run scrape
+```
+
+### Run Tests
+
+```bash
+npm test           # All tests
+npm run test:unit  # Unit tests only
+npm run test:integration  # Integration tests
+npm run test:e2e   # E2E tests
+```
+
+## Workflows
+
+### Daily Scraping
+
+The `job-seeker-ro-spider.yml` workflow runs daily at 6 AM UTC via GitHub Actions.
+
+### Test Automation
+
+The `automation-testing.yml` workflow runs on every push and pull request.
+
+## Derivation
+
+This scraper was derived from the [EPAM template](https://github.com/sebiboga/epam-systems-international-srl-nodejs-scraper) using the autonomous derivation algorithm documented in [ALGORITHM.md](https://github.com/sebiboga/AI-Factory-job-seeker-ro-spider/blob/main/ALGORITHM.md).
+
+## Acknowledgments
+
+Developed with the assistance of AI agents executing the derivation algorithm from the EPAM template.
+
+Special thanks to the open source community and the peviitor.ro team.
 
 ## License
 
@@ -43,6 +134,10 @@ Licensed under the [MIT License](LICENSE).
 
 This project is managed by [ASOCIATIA OPORTUNITATI SI CARIERE](https://oportunitatisicariere.ro) and used as a web scraper for the [peviitor.ro](https://peviitor.ro) job board project.
 
-## Disclaimer
+## Robots.txt Policy
 
-This scraper is designed for educational purposes and legitimate job data aggregation for the Romanian job market.
+This scraper respects the rules from [robots.txt](https://www.ejobs.ro/robots.txt) of eJobs.ro and the [Mingle careers API](https://utilben.mingle.ro/en/apply).
+
+**Key points:**
+- Scraper behavior: 1 request per scrape per source, no concurrent requests
+- ANOFM API is a public, documented endpoint

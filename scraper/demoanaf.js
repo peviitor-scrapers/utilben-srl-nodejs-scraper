@@ -1,12 +1,23 @@
 #!/usr/bin/env node
 
-import { getCompanyFromANAF, searchCompany } from "./company-data.js";
+/**
+ * CLI entry point for the ANAF API module
+ * 
+ * Usage:
+ *   node demoanaf.js search <brand>    - Search for companies
+ *   node demoanaf.js <cif>             - Get company details by CIF
+ * 
+ * The core library is in scraper/anaf.js — this file only provides
+ * the standalone CLI interface.
+ */
+
+import { getCompanyFromANAF, searchCompany } from "./anaf.js";
 import companyConfig from "./config/company.js";
 
 const args = process.argv.slice(2);
 
 if (args[0] === "search") {
-  const brand = args[1] || companyConfig.brand;
+  const brand = args[1] || companyConfig.company;
   console.log(`=== Searching for: ${brand} ===\n`);
 
   searchCompany(brand)

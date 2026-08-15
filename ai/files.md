@@ -4,11 +4,11 @@
 
 | File | Description |
 |------|-------------|
-| `scraper/index.js` | Main scraper - full workflow: scrape eJobs + ANOFM → transform → upsert → generate docs/jobs.md |
+| `scraper/index.js` | Main scraper - full workflow: validate company → scrape eJobs + Mingle + ANOFM → transform → upsert → generate docs/jobs.md |
 | `scraper/company.js` | Validates company via ANAF + Peviitor APIs, checks if company is active/inactive |
 | `scraper/api.js` | Peviitor API operations module — all SOLR access goes through the Peviitor API (no direct SOLR calls) |
-| `scraper/company-data.js` | Company data module — ANAF (demoanaf.ro) → CUIScan (cuiscan.ro) fallback for company data; ANAF search → CUIFirma fallback for search |
-| `scraper/company-data-cli.js` | CLI entry point for company data module (thin wrapper around scraper/company-data.js) |
+| `scraper/anaf.js` | Company data module — ANAF (demoanaf.ro) → CUIScan (cuiscan.ro) fallback for company data; ANAF search → CUIFirma fallback for search |
+| `scraper/demoanaf.js` | CLI entry point for company data module (thin wrapper around scraper/anaf.js) |
 | `scraper/validate-jobs.js` | **Generic deep validator (manual use).** Full GET requests, parses page body for "no longer available" keywords. Works with any CIF, single URL, or file. Slower but catches soft-404s. Not used by CI. |
 | `scraper/job-validator.js` | Shared validation primitives — exports validateByHead(url), validateByContent(url, opts), DEFAULT_EXPIRED_KEYWORDS. Used by both `scraper/validate-jobs.js` and `tests/validate-utilben-jobs.js`. |
 | `scraper/markdown-generator.js` | Generates docs/jobs.md — exports generateJobsMarkdown(companyData, jobs) |
@@ -19,6 +19,8 @@
 |------|-------------|
 | `scraper/config/company.json` | **Single source of truth for company identity.** All scraper code, CI workflows, and the static HTML read from this file. To derive a scraper for a different company, this is the primary file to edit. |
 | `scraper/config/company.js` | ESM wrapper that imports and exposes `scraper/config/company.json` to Node code |
+| `scraper/config/scraper.json` | Scraper-specific config — eJobs careers API base URL, list path, default location |
+| `scraper/config/scraper.js` | ESM wrapper that imports and exposes `scraper/config/scraper.json` to Node code |
 
 ## Test Files — tests/
 
@@ -30,7 +32,7 @@
 | `tests/unit/index.test.js` | Unit tests for index.js — transformJobsForSOLR, mapToJobModel |
 | `tests/unit/company.test.js` | Unit tests for company.js — getCompanyData, validateAndGetCompany, fallback caching |
 | `tests/unit/api.test.js` | Unit tests for api.js — querySOLR, upsertJobs, deleteJobByUrl, deleteJobsByCIF |
-| `tests/unit/company-data.test.js` | Unit tests for company-data.js — ANAF + CUIScan fallback, search + CUIFirma fallback |
+| `tests/unit/demoanaf.test.js` | Unit tests for anaf.js — ANAF + CUIScan fallback, search + CUIFirma fallback |
 | `tests/unit/job-validator.test.js` | Unit tests for job-validator.js — validateByHead, validateByContent |
 | `tests/unit/markdown-generator.test.js` | Unit tests for markdown-generator.js — company section, jobs section, output format |
 | `tests/integration/workflow.test.js` | Integration tests — ANAF live API, Peviitor API |
@@ -50,7 +52,7 @@
 | `ai/files.md` | This file — documents role of each project file |
 | `ai/AGENTS.md` | Rules for AI agents working on this project |
 | `ai/BRANCH.md` | Branch strategy and naming conventions |
-| `ai/CHANGELOG.md` | Version history and notable changes |
+| `CHANGELOG.md` | Version history and notable changes |
 | `CONTRIBUTING.md` | Contribution guidelines |
 | `ai/ISSUES.md` | Issue tracking conventions |
 | `ai/PUBLIC.md` | Notes on public visibility and data policies |
@@ -84,4 +86,4 @@
 - All `.md` schema files (ai/job-model.md, ai/company-model.md) are dynamic — check peviitor_core README.md for updates
 - `tmp/` directory holds runtime artifacts (jobs.json, jobs_existing.json) — not committed
 - All SOLR access goes through the Peviitor API (`api.peviitor.ro/v1`) — no direct SOLR calls, no SOLR_AUTH needed
-- Full workflow: scrape eJobs + ANOFM → transform → upsert via Peviitor API → generate docs/jobs.md
+- Full workflow: scrape eJobs + Mingle + ANOFM → transform → upsert via Peviitor API → generate docs/jobs.md

@@ -6,7 +6,7 @@ describe('Integration: API Workflow', () => {
     let anaf;
 
     beforeAll(async () => {
-      anaf = await import('../../scraper/company-data.js');
+      anaf = await import('../../scraper/anaf.js');
     });
 
     it('should search for UTILBEN brand and find the company', async () => {
@@ -72,7 +72,7 @@ describe('Integration: API Workflow', () => {
     let companyModule;
 
     beforeAll(async () => {
-      anaf = await import('../../scraper/company-data.js');
+      anaf = await import('../../scraper/anaf.js');
       companyModule = await import('../../scraper/company.js');
     });
 

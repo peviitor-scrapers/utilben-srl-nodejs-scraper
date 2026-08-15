@@ -35,12 +35,12 @@ Pentru fiecare workflow din `.github/workflows/`:
 1. Mergi la **Actions** → **Oportunitati SI Cariere** (`job-seeker-ro-spider.yml`)
 2. Apasă **Run workflow** → lasă `main`
 3. Așteaptă să se termine
-4. Verifică job-urile companiei în API:
-   ```
-   https://api.peviitor.ro/v1/scraper/jobs/?cif=18643343
+4. Verifică prin API că job-urile companiei apar:
+   ```bash
+   curl -s "https://api.peviitor.ro/v1/scraper/jobs/?cif=18643343&rows=10" | jq
    ```
 5. Verifică că `docs/jobs.md` a fost generat și este accesibil:
-   - https://sebiboga.github.io/utilben-srl-nodejs-scraper/jobs.md
+   - https://peviitor-scrapers.github.io/utilben-srl-nodejs-scraper/jobs.md
 6. Verifică pe https://peviitor.ro că job-urile sunt vizibile
 
 ## 4. Final

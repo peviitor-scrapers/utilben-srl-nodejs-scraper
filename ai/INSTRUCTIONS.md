@@ -2,7 +2,7 @@
 
 ## Project Purpose
 
-This scraper extracts job listings from eJobs.ro and ANOFM for UTILBEN SRL and imports them to peviitor.ro.
+This scraper extracts job listings from eJobs.ro, Mingle and ANOFM for UTILBEN SRL and imports them to peviitor.ro.
 
 ## Model Schemas
 
@@ -43,7 +43,7 @@ When working on this scraper:
 
 1. **Get existing jobs from API** - Query Peviitor API by CIF to see what jobs already exist
 2. **Validate company via ANAF** - Check company exists and is active (ANAF → CUIScan fallback)
-3. **Scrape new jobs** - Extract jobs from eJobs.ro (cheerio HTML parsing)
+3. **Scrape new jobs** - Extract jobs from eJobs.ro (cheerio HTML parsing) and Mingle Careers API
 4. **Scrape ANOFM** - Fetch additional jobs from ANOFM by CIF
 5. **Transform for API** - Validate and fix job data:
    - location: Only Romanian cities allowed
@@ -58,7 +58,7 @@ When working on this scraper:
 # Run the full scraper workflow
 npm run scrape
 
-# Test mode (eJobs only, no ANOFM)
+# Test mode (eJobs only, no ANOFM/Mingle)
 npm run scrape -- --test
 
 # Run via node directly
@@ -74,6 +74,7 @@ When running `npm run scrape`, the following steps happen automatically:
 1. **Query API by CIF** — get existing job URLs
 2. **Validate company via ANAF** — with CUIScan fallback
 3. **Scrape eJobs.ro** — parse HTML with cheerio
+3b. **Scrape Mingle** — Mingle Careers API
 4. **Scrape ANOFM** — fetch jobs by CIF
 5. **Transform for API** — normalize locations, workmode, tags
 6. **Upsert to API** — via Peviitor API
@@ -98,6 +99,7 @@ scraper/index.js
     │   └── API ──► check existing jobs count
     │
     ├── scrape eJobs.ro (cheerio HTML parsing)
+    ├── scrape Mingle (Mingle Careers API)
     ├── scrape ANOFM (API by CIF)
     │
     ├── transformJobsForSOLR()
@@ -121,8 +123,8 @@ scraper/index.js
 | `scraper/index.js` | Main entry point — full workflow: scrape → transform → upsert → generate docs |
 | `scraper/company.js` | Validates company via ANAF + Peviitor; caches in root `company.json` (7-day TTL) |
 | `scraper/api.js` | Peviitor API operations — query, delete, upsert jobs. All SOLR access goes through the Peviitor API |
-| `scraper/company-data.js` | Company data module — ANAF (demoanaf.ro) → CUIScan (cuiscan.ro) fallback; search → CUIFirma fallback |
-| `scraper/company-data-cli.js` | CLI entry point for ANAF module (thin wrapper around scraper/company-data.js) |
+| `scraper/anaf.js` | Company data module — ANAF (demoanaf.ro) → CUIScan (cuiscan.ro) fallback; search → CUIFirma fallback |
+| `scraper/demoanaf.js` | CLI entry point for ANAF module (thin wrapper around scraper/anaf.js) |
 | `scraper/validate-jobs.js` | Manual deep validator (content-aware); thin CLI wrapper over scraper/job-validator.js |
 | `scraper/job-validator.js` | Shared validation primitives: validateByHead, validateByContent, DEFAULT_EXPIRED_KEYWORDS |
 | `scraper/markdown-generator.js` | Generates docs/jobs.md with company info and all scraped jobs |
@@ -130,7 +132,7 @@ scraper/index.js
 | `tests/unit/index.test.js` | Unit tests for transformJobsForSOLR, mapToJobModel |
 | `tests/unit/company.test.js` | Unit tests for getCompanyData, validateAndGetCompany, fallback caching |
 | `tests/unit/api.test.js` | Unit tests for api.js Peviitor API operations |
-| `tests/unit/company-data.test.js` | Unit tests for ANAF/CUIScan multi-source fallback |
+| `tests/unit/demoanaf.test.js` | Unit tests for ANAF/CUIScan multi-source fallback |
 | `tests/unit/job-validator.test.js` | Unit tests for job-validator.js |
 | `tests/unit/markdown-generator.test.js` | Unit tests for markdown-generator.js |
 | `tests/integration/workflow.test.js` | Live integration tests — ANAF + Peviitor API |
@@ -166,14 +168,14 @@ The scraper is intentionally slow to be a good citizen:
 # Run scraper
 npm run scrape
 
-# Test mode (eJobs only, no ANOFM)
+# Test mode (eJobs only, no ANOFM/Mingle)
 npm run scrape -- --test
 
 # Get company details from ANAF by CIF
-node scraper/company-data-cli.js <CIF>
+node scraper/demoanaf.js <CIF>
 
 # Search companies in ANAF by brand
-node scraper/company-data-cli.js search <brand>
+node scraper/demoanaf.js search <brand>
 
 # Validate job URLs from API by CIF (check active/expired)
 node scraper/validate-jobs.js <CIF>

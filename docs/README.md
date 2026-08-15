@@ -2,7 +2,7 @@
 
 **job_seeker_ro_spider** — scraper pentru job-urile UTILBEN SRL din România.
 
-Extrage anunțurile de pe [eJobs.ro](https://www.ejobs.ro/company/utilben/123016) și [ANOFM](https://www.anofm.ro) și le publică în [peviitor.ro](https://peviitor.ro) prin API-ul Peviitor.
+Extrage anunțurile de pe [eJobs.ro](https://www.ejobs.ro/company/utilben/123016), [Mingle Careers](https://utilben.mingle.ro/en/apply) și [ANOFM](https://www.anofm.ro), și le publică în [peviitor.ro](https://peviitor.ro) prin API-ul Peviitor.
 
 ## Identificare
 
@@ -14,24 +14,61 @@ job_seeker_ro_spider
 
 ## Ce face
 
-1. **Validează compania** — interoghează API-ul public ANAF ([demoanaf.ro](https://demoanaf.ro)) după CIF-ul UTILBEN (18643343) și verifică:
+1. **Validează compania** — interoghează API-ul public ANAF ([demoanaf.ro](https://demoanaf.ro)) după CIF-ul 18643343 și verifică:
    - Denumirea oficială: UTILBEN SRL
    - Status: activ/inactiv/radiat
    - Adresa completă din registrul comerțului
 2. **Cross-validează cu Peviitor** — verifică existența companiei în API-ul Peviitor
-3. **Scrape-uiește job-urile** — extrage lista de job-uri de pe eJobs.ro (pagina companiei) și de pe ANOFM
+3. **Scrape-uiește job-urile** — extrage lista completă de job-uri din pagina companiei de pe eJobs.ro, din API-ul Mingle Careers și din ANOFM API (filtrat pe CIF)
 4. **Transformă datele** — normalizează locațiile (doar orașe românești), tag-urile (lowercase), workmode-ul (remote/on-site/hybrid)
-5. **Stochează în Peviitor** — upsert prin API-ul Peviitor (job-uri și date companie)
-6. **Generează jobs.md** — fișier markdown cu informații companie + toate job-urile curente
+5. **Stochează prin Peviitor API** — upsert pentru job-uri și datele companiei
+6. **Generează docs/jobs.md** — fișier markdown cu informații companie + toate job-urile curente, publicat pe GitHub Pages
 
-## API-uri folosite
+## Structură proiect
+
+```
+├── scraper/
+│   ├── config/company.json         # Sursa unică de adevăr (id, brand, URL-uri)
+│   ├── config/company.js           # Loader ESM pentru config/company.json
+│   ├── config/scraper.json         # Config scraper (apiBase, apiListPath)
+│   ├── index.js                    # Orchestrator principal (eJobs + Mingle + ANOFM)
+│   ├── company.js                  # Validare companie (ANAF + Peviitor)
+│   ├── anaf.js                     # Modul ANAF API
+│   ├── api.js                      # Operații Peviitor API (query, upsert, delete)
+│   ├── markdown-generator.js       # Generează docs/jobs.md
+│   ├── job-validator.js            # Validare job URL (HEAD/content/browser)
+│   ├── validate-jobs.js            # Validator deep (CLI)
+│   └── demoanaf.js                 # CLI ANAF
+├── tmp/company.json                # Cache ANAF (gitignored, TTL 7 zile)
+├── company.json                    # Cache ANAF committed (TTL 7 zile)
+├── ai/                             # Documentație proiect (INSTRUCTIONS, models, etc.)
+├── docs/
+│   ├── jobs.md                     # Job-uri generate după fiecare scrape
+│   └── test-results/               # Rapoarte teste HTML
+├── tests/
+│   ├── unit/                       # Teste unitare
+│   ├── integration/                # Teste de integrare (ANAF + Peviitor live)
+│   ├── e2e/                        # Teste E2E (eJobs HTML real)
+│   └── consistency/                # Teste consistență repo
+└── .github/workflows/
+    ├── job-seeker-ro-spider.yml    # Scrape zilnic la 6 AM UTC
+    ├── automation-testing.yml      # Teste automate pe push/PR
+    └── job-recovery-from-disaster.yml  # Recuperare company core
+```
+
+## API Endpoints
 
 | API | URL | Autentificare |
 |---|---|---|
-| eJobs.ro | `https://www.ejobs.ro/company/utilben/123016` | Public |
-| ANOFM | `https://mediere.anofm.ro/api/entity/vw_public_job_posting` | Public |
+| eJobs.ro | `https://www.ejobs.ro/company/utilben/123016` | Public (HTML) |
+| Mingle Careers API | `https://mingle.ro/api/boards/careers-page/jobs?company=utilben` | Public |
 | ANAF (demoanaf) | `https://demoanaf.ro/api/...` | Public |
-| Peviitor | `https://api.peviitor.ro/v1/` | Public |
+| ANOFM | `https://mediere.anofm.ro/api/entity/vw_public_job_posting` | Public |
+| Peviitor | `https://api.peviitor.ro/v1` | Public (fără auth) |
+
+## Robots.txt
+
+Scraper-ul respectă regulile din [robots.txt](https://www.ejobs.ro/robots.txt). Face câte o singură cerere la fiecare sursă per scrape, fără request-uri concurente.
 
 ## Testare
 
@@ -42,9 +79,11 @@ npm test
 # Doar unitare
 npm run test:unit
 
-# Doar integrare (necesită ANAF live, Peviitor API conditional)
+# Doar integrare (ANAF live, Peviitor conditional)
 npm run test:integration
 
-# Doar E2E (API real eJobs + ANAF + Peviitor)
+# Doar E2E (eJobs HTML real + ANAF + Peviitor)
 npm run test:e2e
 ```
+
+Testele se auto-skip dacă API-urile externe nu sunt disponibile. Nu e nevoie de `SOLR_AUTH` — toate operațiile merg prin Peviitor API.

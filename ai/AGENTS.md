@@ -12,7 +12,7 @@ This repo was derived from [sebiboga/epam-systems-international-srl-nodejs-scrap
 - **Brand:** Utilben
 - **Website:** https://www.utilben.ro
 - **Career URL:** https://www.utilben.ro/careers
-- **Scraping Method:** eJobs.ro HTML (cheerio) + ANOFM API
+- **Scraping Method:** eJobs.ro HTML (cheerio) + Mingle Careers API + ANOFM API
 - **Default Location:** Cluj-Napoca
 
 ## Important Rules

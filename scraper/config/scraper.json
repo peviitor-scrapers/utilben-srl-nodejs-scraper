@@ -1,0 +1,5 @@
+{
+  "apiBase": "https://www.ejobs.ro",
+  "apiListPath": "/company/utilben/123016",
+  "defaultLocation": "Cluj-Napoca"
+}

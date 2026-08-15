@@ -5,9 +5,11 @@ import { validateAndGetCompany } from "./company.js";
 import { querySOLR, upsertJobs, upsertCompany, deleteJobByUrl } from "./api.js";
 import { generateJobsMarkdown } from "./markdown-generator.js";
 import companyConfig from "./config/company.js";
+import scraperConfig from "./config/scraper.js";
 import * as cheerio from "cheerio";
 
 const COMPANY_CIF = companyConfig.id;
+const CAREER_URL = `${scraperConfig.apiBase}${scraperConfig.apiListPath}`;
 const TIMEOUT = 10000;
 
 let COMPANY_NAME = null;
@@ -91,7 +93,7 @@ async function scrapeMingleCareers() {
 async function scrapeEJobs() {
   const jobs = [];
   try {
-    const url = "https://www.ejobs.ro/company/utilben/123016";
+    const url = CAREER_URL;
     console.log(`Fetching eJobs page: ${url}`);
     const res = await fetch(url, {
       timeout: TIMEOUT,
@@ -271,8 +273,8 @@ async function main() {
     const validCount = transformedPayload.jobs.filter(j => j.location).length;
     console.log(`📊 Jobs with valid Romanian locations: ${validCount}`);
 
-    fs.writeFileSync("tmp/jobs.json", JSON.stringify(transformedPayload, null, 2), "utf-8");
-    console.log("Saved tmp/jobs.json");
+    fs.writeFileSync("scraper/jobs.json", JSON.stringify(transformedPayload, null, 2), "utf-8");
+    console.log("Saved scraper/jobs.json");
 
     const companyData = {
       id: cif,

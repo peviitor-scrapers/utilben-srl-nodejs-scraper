@@ -1,3 +1,10 @@
+/**
+ * Company Data Module — ANAF + CUIScan + CUIFirma
+ *
+ * Strategy: 1 try demoanaf.ro → 1 try cuiscan.ro → cached data. No retries.
+ * Search: 1 try demoanaf.ro → 1 try cuifirma.ro.
+ */
+
 import fetch from "node-fetch";
 
 const ANAF_API_URL = "https://demoanaf.ro/api/company/";
@@ -5,6 +12,10 @@ const ANAF_SEARCH_URL = "https://demoanaf.ro/api/search";
 const CUISCAN_API_URL = "https://cuiscan.ro/api.php";
 const CUISFIRMA_SEARCH_URL = "https://cuifirma.ro/api/search";
 const TIMEOUT_MS = 10000;
+
+// ============================================================================
+// CUIScan — company details fallback
+// ============================================================================
 
 function mapCuiscanToAnafFormat(data) {
   return {
@@ -64,6 +75,10 @@ async function fetchFromCuiscan(cif) {
   return mapCuiscanToAnafFormat(json);
 }
 
+// ============================================================================
+// ANAF — primary source
+// ============================================================================
+
 async function fetchFromAnaf(cif) {
   const res = await fetch(`${ANAF_API_URL}${cif}`, {
     headers: { "User-Agent": "job_seeker_ro_spider" },
@@ -85,6 +100,10 @@ async function searchFromAnaf(brandName) {
   return json.data || [];
 }
 
+// ============================================================================
+// CUIFirma — search fallback
+// ============================================================================
+
 async function searchFromCuifirma(brandName) {
   const res = await fetch(`${CUISFIRMA_SEARCH_URL}?q=${encodeURIComponent(brandName)}`, {
     headers: { "User-Agent": "job_seeker_ro_spider" },
@@ -99,6 +118,13 @@ async function searchFromCuifirma(brandName) {
   }));
 }
 
+// ============================================================================
+// PUBLIC API
+// ============================================================================
+
+/**
+ * Fetches company by CIF — ANAF first, CUIScan fallback
+ */
 export async function getCompanyFromANAF(cif) {
   try {
     console.log(`Fetching company data for CIF: ${cif} (demoanaf.ro)...`);
@@ -109,6 +135,9 @@ export async function getCompanyFromANAF(cif) {
   }
 }
 
+/**
+ * Fetches company with fallback to cached data
+ */
 export async function getCompanyFromANAFWithFallback(cif, cachedData = null) {
   try {
     return await getCompanyFromANAF(cif);
@@ -122,6 +151,9 @@ export async function getCompanyFromANAFWithFallback(cif, cachedData = null) {
   }
 }
 
+/**
+ * Searches companies by brand — ANAF first, CUIFirma fallback
+ */
 export async function searchCompany(brandName) {
   try {
     return await searchFromAnaf(brandName);

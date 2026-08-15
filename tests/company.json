@@ -23,6 +23,6 @@
     "location": ["Cluj-Napoca"],
     "website": ["https://www.utilben.ro"],
     "career": ["https://www.utilben.ro/careers"],
-    "scraperFile": "https://raw.githubusercontent.com/sebiboga/utilben-srl-nodejs-scraper/main/.github/workflows/job-seeker-ro-spider.yml"
+    "scraperFile": "https://raw.githubusercontent.com/peviitor-scrapers/utilben-srl-nodejs-scraper/main/.github/workflows/job-seeker-ro-spider.yml"
   }
 }

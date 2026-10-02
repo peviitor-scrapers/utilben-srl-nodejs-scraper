@@ -10,28 +10,34 @@
 | Location | JUD. SATU MARE, MUN. CAREI, CAL. ARMATEI ROMÂNE, NR.78 |
 | Website | [https://www.utilben.ro](https://www.utilben.ro) |
 | Careers | [https://www.utilben.ro/careers](https://www.utilben.ro/careers), [https://utilben.mingle.ro/en/apply](https://utilben.mingle.ro/en/apply), [https://www.ejobs.ro/company/utilben/123016](https://www.ejobs.ro/company/utilben/123016) |
-| Last Scraped | 2026-08-15 |
+| Last Scraped | 2026-10-02 |
 
-## Current Job Listings (11)
+## Current Job Listings (10)
 
-_Generated: 2026-08-15T06:59:22.042Z_
+_Generated: 2026-10-02T15:58:32.016Z_
 
-### Consultant Vanzari- Utilaje Municipale - Sud-ul Romaniei
+### Reprezentant Vânzări Utilaje de Construcții – Zona Moldova
 
-- **URL:** [https://www.ejobs.ro/user/locuri-de-munca/consultant-vanzari-utilaje-municipale-sud-ul-romaniei/1973101](https://www.ejobs.ro/user/locuri-de-munca/consultant-vanzari-utilaje-municipale-sud-ul-romaniei/1973101)
+- **URL:** [https://utilben.mingle.ro/en/apply/ti1NTw](https://utilben.mingle.ro/en/apply/ti1NTw)
 - **Location:** România
 - **Status:** scraped
 
-### Office sales: piese si servicii de reparatii Baciu si Iasi
+### Reprezentant Vânzări Utilaje de Construcții – Zona Transilvania
 
-- **URL:** [https://www.ejobs.ro/user/locuri-de-munca/office-sales-piese-si-servicii-de-reparatii-baciu-si-iasi/1973099](https://www.ejobs.ro/user/locuri-de-munca/office-sales-piese-si-servicii-de-reparatii-baciu-si-iasi/1973099)
+- **URL:** [https://utilben.mingle.ro/en/apply/tiqeVg](https://utilben.mingle.ro/en/apply/tiqeVg)
 - **Location:** România
 - **Status:** scraped
 
-### Consultant Vanzari- Utilaje Municipale - Sud-ul Romaniei
+### Consultant Vanzari Teren  Utilaje de Constructii - Zona Sud
+
+- **URL:** [https://utilben.mingle.ro/en/apply/tXf8og](https://utilben.mingle.ro/en/apply/tXf8og)
+- **Location:** Bucharest
+- **Status:** scraped
+
+### Reprezentant Vanzari Utilaje de constructii - Sud-ul Romaniei
 
 - **URL:** [https://utilben.mingle.ro/en/apply/sPjIAA](https://utilben.mingle.ro/en/apply/sPjIAA)
-- **Location:** Pitești, Ploiești, Braila, Buzau
+- **Location:** Ploiești, Braila, Giurgiu
 - **Status:** scraped
 
 ### Consultant Vanzari- Utilaje Municipale - VEST
@@ -40,13 +46,7 @@ _Generated: 2026-08-15T06:59:22.042Z_
 - **Location:** Timisoara, Oradea, arad, Deva, Hunedoara
 - **Status:** scraped
 
-### Consilier Service- Letcani,  jud. Iasi
-
-- **URL:** [https://utilben.mingle.ro/en/apply/TTycoA](https://utilben.mingle.ro/en/apply/TTycoA)
-- **Location:** România
-- **Status:** scraped
-
-### Reprezentant vanzari piese si servicii de reparatii, Baciu
+### Reprezentant Vânzări B2B – Servicii de Reparații
 
 - **URL:** [https://utilben.mingle.ro/en/apply/OxEl6Q](https://utilben.mingle.ro/en/apply/OxEl6Q)
 - **Location:** România
@@ -74,10 +74,4 @@ _Generated: 2026-08-15T06:59:22.042Z_
 
 - **URL:** [https://utilben.mingle.ro/en/apply/DX7qXQ](https://utilben.mingle.ro/en/apply/DX7qXQ)
 - **Location:** Cluj-Napoca, Iasi
-- **Status:** scraped
-
-### Contabil Senior
-
-- **URL:** [https://utilben.mingle.ro/en/apply/BjtR9w](https://utilben.mingle.ro/en/apply/BjtR9w)
-- **Location:** Cluj-Napoca
 - **Status:** scraped

@@ -1,5 +1,7 @@
 import fetch from "node-fetch";
 import fs from "fs";
+import { execFile } from "child_process";
+import { promisify } from "util";
 import { fileURLToPath } from "url";
 import { validateAndGetCompany } from "./company.js";
 import { querySOLR, upsertJobs, upsertCompany, deleteJobByUrl } from "./api.js";
@@ -15,6 +17,55 @@ const TIMEOUT = 10000;
 let COMPANY_NAME = null;
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const execFileAsync = promisify(execFile);
+
+const EJOBS_HEADERS = {
+  "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+  "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+  "Accept-Language": "ro-RO,ro;q=0.9,en-US;q=0.8,en;q=0.7"
+};
+
+const CLOUDFLARE_BLOCK_RE = /Sorry, you have been blocked|cf-error-details|Just a moment\.\.\./i;
+
+function isCloudflareBlock(status, html) {
+  return status === 403 || CLOUDFLARE_BLOCK_RE.test(html || "");
+}
+
+async function fetchEJobsHtml(url) {
+  try {
+    const res = await fetch(url, { timeout: TIMEOUT, headers: EJOBS_HEADERS });
+    const html = await res.text();
+    if (res.ok && !isCloudflareBlock(res.status, html)) {
+      return { ok: true, status: res.status, html, transport: "fetch" };
+    }
+    const reason = isCloudflareBlock(res.status, html) ? " (Cloudflare block)" : "";
+    console.log(`  eJobs fetch returned ${res.status}${reason} — retrying with curl`);
+  } catch (err) {
+    console.log(`  eJobs fetch error: ${err.message} — retrying with curl`);
+  }
+
+  try {
+    const { stdout } = await execFileAsync("curl", [
+      "-sS", "-L", "--max-time", String(Math.ceil(TIMEOUT / 1000)),
+      "-A", EJOBS_HEADERS["User-Agent"],
+      "-H", `Accept: ${EJOBS_HEADERS["Accept"]}`,
+      "-H", `Accept-Language: ${EJOBS_HEADERS["Accept-Language"]}`,
+      url
+    ], { maxBuffer: 20 * 1024 * 1024 });
+
+    if (stdout && !isCloudflareBlock(0, stdout)) {
+      console.log("  eJobs fetched via curl fallback");
+      return { ok: true, status: 200, html: stdout, transport: "curl" };
+    }
+
+    const reason = isCloudflareBlock(0, stdout) ? "was blocked" : "returned an empty response";
+    console.log(`  eJobs curl fallback ${reason}`);
+    return { ok: false, status: isCloudflareBlock(0, stdout) ? 403 : 0, html: stdout || "", transport: "curl" };
+  } catch (err) {
+    console.log(`  eJobs curl fallback error: ${err.message}`);
+    return { ok: false, status: 0, html: "", transport: "curl", error: err.message };
+  }
+}
 
 async function fetchANOFMJobs(cif) {
   const jobs = [];
@@ -96,51 +147,48 @@ export async function scrapeMingleCareers() {
   return (await fetchMingleJobs()).jobs;
 }
 
-async function fetchEJobsJobs() {
+export function parseEJobsHtml(html) {
   const jobs = [];
-  try {
-    const url = CAREER_URL;
-    console.log(`Fetching eJobs page: ${url}`);
-    const res = await fetch(url, {
-      timeout: TIMEOUT,
-      headers: {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-        "Accept": "text/html"
+  const $ = cheerio.load(html);
+  $(".job-card-wrapper").each((i, el) => {
+    const linkEl = $(el).find(".job-card-content__logo");
+    const jobUrl = linkEl.attr("href");
+    const titleEl = $(el).find(".job-card-content-middle__title");
+    const title = titleEl.text().trim();
+    const infoEls = $(el).find(".job-card-content-middle__info, .job-card-content-middle__info a");
+    const location = [];
+    infoEls.each((j, infoEl) => {
+      const text = $(infoEl).text().trim();
+      if (text && !text.startsWith("http") && text !== "UTILBEN" && text !== "Aplică rapid" && !location.includes(text)) {
+        location.push(text);
       }
     });
-    if (!res.ok) {
-      console.log(`  eJobs returned ${res.status}`);
-      return { jobs, ok: false };
-    }
-    const html = await res.text();
-    const $ = cheerio.load(html);
-    $(".job-card-wrapper").each((i, el) => {
-      const linkEl = $(el).find(".job-card-content__logo");
-      const jobUrl = linkEl.attr("href");
-      const titleEl = $(el).find(".job-card-content-middle__title");
-      const title = titleEl.text().trim();
-      const infoEls = $(el).find(".job-card-content-middle__info, .job-card-content-middle__info a");
-      let location = [];
-      infoEls.each((j, infoEl) => {
-        const text = $(infoEl).text().trim();
-        if (text && !text.startsWith("http") && text !== "UTILBEN" && text !== "Aplică rapid") {
-          location.push(text);
-        }
+    if (title && jobUrl) {
+      jobs.push({
+        url: `https://www.ejobs.ro${jobUrl}`,
+        title: title,
+        location: location.length > 0 ? location : undefined,
+        source: "eJobs"
       });
-      if (title && jobUrl) {
-        jobs.push({
-          url: `https://www.ejobs.ro${jobUrl}`,
-          title: title,
-          location: location.length > 0 ? location : undefined,
-          source: "eJobs"
-        });
-      }
-    });
-    console.log(`  Found ${jobs.length} jobs on eJobs`);
+    }
+  });
+  return jobs;
+}
+
+async function fetchEJobsJobs() {
+  console.log(`Fetching eJobs page: ${CAREER_URL}`);
+  try {
+    const result = await fetchEJobsHtml(CAREER_URL);
+    if (!result.ok) {
+      console.log(`  eJobs unavailable (status ${result.status})`);
+      return { jobs: [], ok: false };
+    }
+    const jobs = parseEJobsHtml(result.html);
+    console.log(`  Found ${jobs.length} jobs on eJobs via ${result.transport}`);
     return { jobs, ok: true };
   } catch (err) {
     console.log(`  eJobs error: ${err.message}`);
-    return { jobs, ok: false };
+    return { jobs: [], ok: false };
   }
 }
 

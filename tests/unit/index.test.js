@@ -1,4 +1,5 @@
 import { jest } from '@jest/globals';
+import fs from 'fs';
 
 const mockFetch = jest.fn();
 
@@ -212,6 +213,29 @@ describe('index.js Component Tests', () => {
 
       expect(result.title).toBeUndefined();
       expect(result.url).toBe('https://test.com/1');
+    });
+  });
+
+  describe('parseEJobsHtml', () => {
+    it('should parse job cards from an eJobs company page fixture', () => {
+      const html = fs.readFileSync(new URL('../fixtures/ejobs-company.html', import.meta.url), 'utf-8');
+
+      const jobs = index.parseEJobsHtml(html);
+
+      expect(jobs).toHaveLength(2);
+      expect(jobs[0]).toEqual({
+        url: 'https://www.ejobs.ro/user/locuri-de-munca/cluj-test-job/123456',
+        title: 'Reprezentant Vânzări Utilaje',
+        location: ['Cluj-Napoca'],
+        source: 'eJobs'
+      });
+      expect(jobs[1].location).toEqual(['București']);
+    });
+
+    it('should return an empty array when there are no job cards', () => {
+      const jobs = index.parseEJobsHtml('<html><body>nu are joburi disponibile</body></html>');
+
+      expect(jobs).toEqual([]);
     });
   });
 

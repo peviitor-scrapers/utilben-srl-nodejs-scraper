@@ -48,10 +48,56 @@ describe('index.js Component Tests', () => {
       const result = index.transformJobsForSOLR(payload);
 
       expect(result.jobs[0].location).toEqual(['România']);
-      expect(result.jobs[1].location).toEqual(['Bucharest']);
+      expect(result.jobs[1].location).toEqual(['București']);
       expect(result.jobs[2].location).toEqual(['România']);
       expect(result.jobs[3].location).toEqual(['Cluj-Napoca']);
       expect(result.jobs[4].location).toEqual(['România']);
+    });
+
+    it('should match locations without diacritics and canonicalize casing', () => {
+      const payload = {
+        jobs: [
+          { url: 'https://test.com/1', title: 'Job 1', location: ['Bucuresti', 'Timisoara', 'arad'] },
+          { url: 'https://test.com/2', title: 'Job 2', location: ['Targu Mures', 'Ramnicu Valcea'] }
+        ]
+      };
+
+      const result = index.transformJobsForSOLR(payload);
+
+      expect(result.jobs[0].location).toEqual(['București', 'Timișoara', 'Arad']);
+      expect(result.jobs[1].location).toEqual(['Târgu Mureș', 'Râmnicu Vâlcea']);
+    });
+
+    it('should split comma-separated Mingle labels and keep counties', () => {
+      const payload = {
+        jobs: [
+          {
+            url: 'https://test.com/1',
+            title: 'Job 1',
+            location: ['Iasi, Suceava, Botosani, Neamt']
+          }
+        ]
+      };
+
+      const result = index.transformJobsForSOLR(payload);
+
+      expect(result.jobs[0].location).toEqual(['Iași', 'Suceava', 'Botoșani', 'Neamț']);
+    });
+
+    it('should dedupe locations and drop eJobs "și alte orașe" tail', () => {
+      const payload = {
+        jobs: [
+          {
+            url: 'https://test.com/1',
+            title: 'Job 1',
+            location: ['Oradea, Oradea, Beiuș și alte 83 orașe', 'Bihor']
+          }
+        ]
+      };
+
+      const result = index.transformJobsForSOLR(payload);
+
+      expect(result.jobs[0].location).toEqual(['Oradea', 'Beiuș', 'Bihor']);
     });
 
     it('should keep company uppercase', () => {

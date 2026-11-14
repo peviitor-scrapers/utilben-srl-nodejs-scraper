@@ -209,21 +209,89 @@ function mapToJobModel(rawJob, cif, companyName = COMPANY_NAME) {
   return job;
 }
 
+const ROMANIAN_LOCATION_NAMES = [
+  'București', 'Cluj-Napoca', 'Timișoara', 'Iași', 'Brașov', 'Constanța',
+  'Craiova', 'Bacău', 'Sibiu', 'Târgu Mureș', 'Oradea', 'Baia Mare',
+  'Satu Mare', 'Ploiești', 'Pitești', 'Arad', 'Galați', 'Brăila',
+  'Drobeta-Turnu Severin', 'Râmnicu Vâlcea', 'Buzău', 'Botoșani', 'Zalău',
+  'Hunedoara', 'Deva', 'Suceava', 'Bistrița', 'Tulcea', 'Călărași',
+  'Giurgiu', 'Alba Iulia', 'Slatina', 'Piatra Neamț', 'Roman', 'Dumbrăvița',
+  'Voluntari', 'Popești-Leordeni', 'Chitila', 'Mogoșoaia', 'Otopeni',
+  'Focșani', 'Târgoviște', 'Târgu Jiu', 'Miercurea Ciuc', 'Sfântu Gheorghe',
+  'Reșița', 'Alexandria', 'Slobozia', 'Vaslui', 'Bârlad', 'Mediaș', 'Turda',
+  'Câmpia Turzii', 'Petroșani', 'Lugoj', 'Pașcani', 'Sighetu Marmației',
+  'Vatra Dornei', 'Beclean', 'Aleșd', 'Beiuș', 'Baciu', 'Florești',
+  'Odorheiu Secuiesc', 'Sighișoara', 'Făgăraș', 'Codlea', 'Săcele', 'Râșnov',
+  'Mioveni', 'Câmpulung', 'Curtea de Argeș', 'Târgu Frumos', 'Hârlău',
+  'Dorohoi', 'Comănești', 'Onești', 'Adjud', 'Tecuci', 'Oltenița', 'Urziceni',
+  'Fetești', 'Năvodari', 'Mangalia', 'Medgidia', 'Cernavodă', 'Eforie',
+  'Sinaia', 'Câmpina', 'Băicoi', 'Breaza', 'Titu', 'Găești', 'Pucioasa',
+  'Moreni', 'Rovinari', 'Motru', 'Târgu Cărbunești', 'Strehaia', 'Orșova',
+  'Băile Herculane', 'Caransebeș', 'Jimbolia', 'Recaș', 'Deta',
+  'Sânnicolau Mare', 'Toplița', 'Gheorgheni', 'Cristuru Secuiesc', 'Baraolt',
+  'Covasna', 'Târgu Secuiesc', 'Negrești-Oaș', 'Carei',
+  'Alba', 'Argeș', 'Bihor', 'Bistrița-Năsăud', 'Caraș-Severin', 'Cluj',
+  'Dâmbovița', 'Dolj', 'Gorj', 'Harghita', 'Ialomița', 'Ilfov', 'Maramureș',
+  'Mehedinți', 'Mureș', 'Neamț', 'Olt', 'Prahova', 'Sălaj', 'Teleorman',
+  'Timiș', 'Vâlcea', 'Vrancea'
+];
+
+const LOCATION_ALIASES = {
+  bucharest: 'București',
+  bucuresti: 'București',
+  'targu mures': 'Târgu Mureș',
+  'ramnicu valcea': 'Râmnicu Vâlcea',
+  'piatra neamt': 'Piatra Neamț',
+  'bistrita nasaud': 'Bistrița-Năsăud',
+  'targoviste': 'Târgoviște',
+  'campulung muscel': 'Câmpulung'
+};
+
+function normalizeLocationKey(value) {
+  return String(value)
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\([^)]*\)/g, ' ')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim()
+    .replace(/\s+/g, ' ');
+}
+
+const LOCATION_LOOKUP = new Map();
+for (const name of ROMANIAN_LOCATION_NAMES) {
+  LOCATION_LOOKUP.set(normalizeLocationKey(name), name);
+}
+for (const [alias, canonical] of Object.entries(LOCATION_ALIASES)) {
+  LOCATION_LOOKUP.set(normalizeLocationKey(alias), canonical);
+}
+
+export function splitLocationValues(locations) {
+  const parts = [];
+  for (const value of locations || []) {
+    if (!value) continue;
+    for (const part of String(value).split(/[,;]/)) {
+      const trimmed = part.trim();
+      if (trimmed) parts.push(trimmed);
+    }
+  }
+  return parts;
+}
+
+export function canonicalLocation(value) {
+  const cleaned = String(value || '')
+    .replace(/\([^)]*\)/g, ' ')
+    .replace(/\s+(și|si)\s+alte.*$/i, '')
+    .trim();
+  if (!cleaned) return null;
+
+  const key = normalizeLocationKey(cleaned);
+  if (!key) return null;
+  if (key === 'romania') return 'România';
+  return LOCATION_LOOKUP.get(key) || null;
+}
+
 function transformJobsForSOLR(payload) {
-  const romanianCities = [
-    'Bucharest', 'București', 'Cluj-Napoca', 'Cluj Napoca',
-    'Timișoara', 'Timisoara', 'Iași', 'Iasi', 'Brașov', 'Brasov',
-    'Constanța', 'Constanta', 'Craiova', 'Bacău', 'Sibiu',
-    'Târgu Mureș', 'Targu Mures', 'Oradea', 'Baia Mare', 'Satu Mare',
-    'Ploiești', 'Ploiesti', 'Pitești', 'Pitesti', 'Arad', 'Galați', 'Galati',
-    'Brăila', 'Braila', 'Drobeta-Turnu Severin', 'Râmnicu Vâlcea', 'Ramnicu Valcea',
-    'Buzău', 'Buzau', 'Botoșani', 'Botosani', 'Zalău', 'Zalau', 'Hunedoara', 'Deva',
-    'Suceava', 'Bistrița', 'Bistrita', 'Tulcea', 'Călărași', 'Calarasi',
-    'Giurgiu', 'Alba Iulia', 'Slatina', 'Piatra Neamț', 'Piatra Neamt', 'Roman',
-    'Dumbrăvița', 'Dumbravita', 'Voluntari', 'Popești-Leordeni', 'Popesti-Leordeni',
-    'Chitila', 'Mogoșoaia', 'Mogosoaia', 'Otopeni', 'Focșani', 'Focsani'
-  ];
-  const citySet = new Set(romanianCities.map(c => c.toLowerCase()));
   const normalizeWorkmode = (wm) => {
     if (!wm) return undefined;
     const lower = wm.toLowerCase();
@@ -235,11 +303,13 @@ function transformJobsForSOLR(payload) {
     ...payload,
     company: payload.company?.toUpperCase(),
     jobs: payload.jobs.map(job => {
-      const validLocations = (job.location || []).filter(loc => {
-        const lower = loc.toLowerCase().trim();
-        if (lower === 'romania' || lower === 'românia') return true;
-        return citySet.has(lower);
-      }).map(loc => loc.toLowerCase() === 'romania' ? 'România' : loc);
+      const validLocations = [];
+      for (const part of splitLocationValues(job.location)) {
+        const canonical = canonicalLocation(part);
+        if (canonical && !validLocations.includes(canonical)) {
+          validLocations.push(canonical);
+        }
+      }
       return {
         ...job,
         location: validLocations.length > 0 ? validLocations : ['România'],

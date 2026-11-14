@@ -16,7 +16,7 @@ let COMPANY_NAME = null;
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-async function searchANOFM(cif) {
+async function fetchANOFMJobs(cif) {
   const jobs = [];
   try {
     console.log(`Searching ANOFM by CIF: ${cif}`);
@@ -37,7 +37,7 @@ async function searchANOFM(cif) {
     });
     if (!res.ok) {
       console.log(`  ANOFM returned ${res.status}`);
-      return jobs;
+      return { jobs, ok: false };
     }
     const data = await res.json();
     for (const row of data.rows || []) {
@@ -51,13 +51,14 @@ async function searchANOFM(cif) {
       });
     }
     console.log(`  Found ${jobs.length} jobs on ANOFM`);
+    return { jobs, ok: true };
   } catch (err) {
     console.log(`  ANOFM error: ${err.message}`);
+    return { jobs, ok: false };
   }
-  return jobs;
 }
 
-async function scrapeMingleCareers() {
+async function fetchMingleJobs() {
   const jobs = [];
   try {
     const url = "https://mingle.ro/api/boards/careers-page/jobs?company=utilben&page=0&pageSize=30&sort=";
@@ -71,7 +72,7 @@ async function scrapeMingleCareers() {
     });
     if (!res.ok) {
       console.log(`  Mingle API returned ${res.status}`);
-      return jobs;
+      return { jobs, ok: false };
     }
     const data = await res.json();
     for (const job of data.data?.results || []) {
@@ -84,13 +85,18 @@ async function scrapeMingleCareers() {
       });
     }
     console.log(`  Found ${jobs.length} jobs on Mingle`);
+    return { jobs, ok: true };
   } catch (err) {
     console.log(`  Mingle error: ${err.message}`);
+    return { jobs, ok: false };
   }
-  return jobs;
 }
 
-async function scrapeEJobs() {
+export async function scrapeMingleCareers() {
+  return (await fetchMingleJobs()).jobs;
+}
+
+async function fetchEJobsJobs() {
   const jobs = [];
   try {
     const url = CAREER_URL;
@@ -104,7 +110,7 @@ async function scrapeEJobs() {
     });
     if (!res.ok) {
       console.log(`  eJobs returned ${res.status}`);
-      return jobs;
+      return { jobs, ok: false };
     }
     const html = await res.text();
     const $ = cheerio.load(html);
@@ -131,10 +137,11 @@ async function scrapeEJobs() {
       }
     });
     console.log(`  Found ${jobs.length} jobs on eJobs`);
+    return { jobs, ok: true };
   } catch (err) {
     console.log(`  eJobs error: ${err.message}`);
+    return { jobs, ok: false };
   }
-  return jobs;
 }
 
 function mapToJobModel(rawJob, cif, companyName = COMPANY_NAME) {
@@ -195,6 +202,23 @@ function transformJobsForSOLR(payload) {
   return transformed;
 }
 
+export function sourceForUrl(url) {
+  const value = String(url || "").toLowerCase();
+  if (value.includes("ejobs.ro")) return "eJobs";
+  if (value.includes("mingle.ro")) return "Mingle";
+  if (value.includes("anofm.ro")) return "ANOFM";
+  return "unknown";
+}
+
+export function getStaleUrls(existingUrls, scrapedUrls, sourceHealth) {
+  return [...existingUrls].filter(url => {
+    if (scrapedUrls.has(url)) return false;
+    const source = sourceForUrl(url);
+    if (source === "unknown") return false;
+    return sourceHealth[source] === true;
+  });
+}
+
 async function main() {
   const testOnlyOnePage = process.argv.includes("--test");
   try {
@@ -231,9 +255,12 @@ async function main() {
     }
 
     const rawJobs = [];
+    const sourceHealth = { eJobs: false, Mingle: false, ANOFM: false };
+
     console.log("=== Step 3: Scrape jobs from eJobs ===");
-    const ejobsJobs = await scrapeEJobs();
-    for (const job of ejobsJobs) {
+    const eJobsResult = await fetchEJobsJobs();
+    sourceHealth.eJobs = eJobsResult.ok;
+    for (const job of eJobsResult.jobs) {
       if (!rawJobs.find(j => j.url === job.url)) {
         rawJobs.push(job);
       }
@@ -241,8 +268,9 @@ async function main() {
 
     if (!testOnlyOnePage) {
       console.log("=== Step 3b: Scrape jobs from ANOFM ===");
-      const anofmJobs = await searchANOFM(cif);
-      for (const job of anofmJobs) {
+      const anofmResult = await fetchANOFMJobs(cif);
+      sourceHealth.ANOFM = anofmResult.ok;
+      for (const job of anofmResult.jobs) {
         if (!rawJobs.find(j => j.url === job.url)) {
           rawJobs.push(job);
         }
@@ -250,14 +278,16 @@ async function main() {
     }
 
     console.log("=== Step 3c: Scrape jobs from Mingle ===");
-    const mingleJobs = await scrapeMingleCareers();
-    for (const job of mingleJobs) {
+    const mingleResult = await fetchMingleJobs();
+    sourceHealth.Mingle = mingleResult.ok;
+    for (const job of mingleResult.jobs) {
       if (!rawJobs.find(j => j.url === job.url)) {
         rawJobs.push(job);
       }
     }
 
     console.log(`📊 Total unique jobs collected: ${rawJobs.length}`);
+    console.log(`📊 Source health: ${JSON.stringify(sourceHealth)}`);
 
     const jobs = rawJobs.map(job => mapToJobModel(job, cif));
     const payload = {
@@ -299,7 +329,15 @@ async function main() {
     await upsertJobs(transformedPayload.jobs);
 
     const scrapedUrls = new Set(transformedPayload.jobs.map(job => job.url));
-    const staleUrls = [...existingUrls].filter(url => !scrapedUrls.has(url));
+    const staleUrls = getStaleUrls(existingUrls, scrapedUrls, sourceHealth);
+    const keptUrls = [...existingUrls].filter(url => !scrapedUrls.has(url) && !staleUrls.includes(url));
+
+    if (keptUrls.length > 0) {
+      console.log(`\n⚠️ Kept ${keptUrls.length} existing job(s) because their source failed or was not scraped:`);
+      for (const url of keptUrls) {
+        console.log(`  Keeping: ${url}`);
+      }
+    }
 
     if (staleUrls.length > 0) {
       console.log(`\n=== Step 6.5: Delete ${staleUrls.length} stale job(s) ===`);
@@ -338,7 +376,7 @@ async function main() {
   }
 }
 
-export { mapToJobModel, transformJobsForSOLR, scrapeMingleCareers };
+export { mapToJobModel, transformJobsForSOLR };
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main();

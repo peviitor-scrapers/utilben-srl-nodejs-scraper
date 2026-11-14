@@ -214,4 +214,60 @@ describe('index.js Component Tests', () => {
       expect(result.url).toBe('https://test.com/1');
     });
   });
+
+  describe('getStaleUrls', () => {
+    const mingleUrl = 'https://utilben.mingle.ro/en/apply/HIiymQ';
+    const eJobsUrl = 'https://www.ejobs.ro/user/locuri-de-munca/test/123';
+    const anofmUrl = 'https://mediere.anofm.ro/app/module/mediere/job/1';
+
+    it('should not delete jobs from a source that failed', () => {
+      const stale = index.getStaleUrls(
+        new Set([mingleUrl, eJobsUrl]),
+        new Set(),
+        { eJobs: false, Mingle: false, ANOFM: false }
+      );
+
+      expect(stale).toEqual([]);
+    });
+
+    it('should delete jobs from a source that succeeded when no longer scraped', () => {
+      const stale = index.getStaleUrls(
+        new Set([mingleUrl, eJobsUrl]),
+        new Set(),
+        { eJobs: true, Mingle: true, ANOFM: true }
+      );
+
+      expect(stale).toEqual([mingleUrl, eJobsUrl]);
+    });
+
+    it('should only delete from the successful source', () => {
+      const stale = index.getStaleUrls(
+        new Set([mingleUrl, eJobsUrl]),
+        new Set(),
+        { eJobs: false, Mingle: true, ANOFM: false }
+      );
+
+      expect(stale).toEqual([mingleUrl]);
+    });
+
+    it('should keep jobs that are still scraped', () => {
+      const stale = index.getStaleUrls(
+        new Set([mingleUrl, anofmUrl]),
+        new Set([mingleUrl]),
+        { eJobs: true, Mingle: true, ANOFM: true }
+      );
+
+      expect(stale).toEqual([anofmUrl]);
+    });
+
+    it('should never delete URLs from an unknown source', () => {
+      const stale = index.getStaleUrls(
+        new Set(['https://example.com/job/1']),
+        new Set(),
+        { eJobs: true, Mingle: true, ANOFM: true }
+      );
+
+      expect(stale).toEqual([]);
+    });
+  });
 });
